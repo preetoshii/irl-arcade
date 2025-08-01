@@ -23,9 +23,9 @@ No floating imports, no orphaned code. Everything has a clear home.
 
 
 File Header (Natural language context at the beginning of components):
-```tsx
+```jsx
 /**
- * ComponentName.tsx
+ * ComponentName.jsx
  * 
  * This component handles the core audio playback for our park game sessions.
  * It's designed to work seamlessly with Bluetooth speakers and allows for
@@ -39,7 +39,7 @@ File Header (Natural language context at the beginning of components):
 ```
 
 Major Section Formatting:
-```tsx
+```jsx
 // ========================================================================================================
 //
 //
@@ -51,7 +51,7 @@ Major Section Formatting:
 ```
 
 Feature Overview Formatting:
-```tsx
+```jsx
 /* FEATURE OVERVIEW: Player Callouts
  * 
  * Every 10 seconds, the system picks a random player and announces
@@ -61,7 +61,7 @@ Feature Overview Formatting:
 ```
 
 Subsection Formatting:
-```tsx
+```jsx
 // ========================================
 // Feature State
 // All state variables for this feature
@@ -69,13 +69,13 @@ Subsection Formatting:
 ```
 
 Microsection Formatting:
-```tsx
+```jsx
 // --- Audio Controls ---
 ```
 
 
 Logic Block Formatting:
-```tsx
+```jsx
 /**
  * What this does and why
  * Reference constants, not hardcoded values
@@ -105,7 +105,7 @@ Additional rules:
 - **No extra wrappers** - FEATURE OVERVIEW comes right after the major header
 
 The 2-3-10 Visual Guide:
-```tsx
+```jsx
 [MAJOR SECTION HEADER]
 ↓ 2 blank lines
 [FEATURE OVERVIEW or first subsection]

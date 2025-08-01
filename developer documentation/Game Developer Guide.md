@@ -60,7 +60,7 @@ The magic of Hot Module Replacement means your game literally never stops runnin
 
 ### **JavaScript/JSX** 
 -----------------------------------------
-Maximum iteration speed, no type gymnastics in the park, easier for collaborators to jump in and contribute immediately. Not TypeScript, as that creates a few more hurdles.
+Maximum iteration speed, no type gymnastics in the park, easier for collaborators to jump in and contribute immediately. We chose JavaScript over TypeScript to keep the barrier low and the experimentation fast.
 
 
 
@@ -86,11 +86,63 @@ Claude Code is more ideal due to our Claude agents and subagents that create cod
 -------------------------
 Checkpoint working states when you find something fun, enable branching for wild experiments without breaking the main game, natural collaboration point for multiple developers.
 
+**Our Repository**: https://github.com/preetoshii/the-next-big-game
+
+Clone it to start contributing:
+```bash
+git clone https://github.com/preetoshii/the-next-big-game.git
+cd the-next-big-game
+npm install
+npm run dev
+```
+
 
 
 ### **Vercel** (Deployment)
 -------------------------
 Auto-deploy on push means every git commit gives you a playable URL. When laptop battery dies, instantly switch to phone. Share progress with friends not at the park. Also connected to GitHub, with zero-config deployments, preview URLs for every branch in case we just wanna jump into a previous build.
+
+
+
+
+
+
+
+
+
+------------------------------------------------------------------
+## WTF IS VERCEL?
+------------------------------------------------------------------
+
+Think of Vercel as a magical host that turns your GitHub code into a live website anyone can access. No servers to manage, no deployment scripts to write - just push your code and boom, it's live on the internet.
+
+**Here's our Live URL!**: https://the-next-big-game.vercel.app
+
+**How It Works:**
+1. You push code to GitHub
+2. Vercel sees the push and automatically builds your app
+3. ~30 seconds later, your changes are live at the URL
+4. Anyone with the link can play - no installation needed
+
+**The Magic Part:**
+- **Main branch** → Updates the production URL (the-next-big-game.vercel.app)
+- **Any other branch** → Gets its own preview URL (like `the-next-big-game-feature-name.vercel.app`)
+- **Laptop dies mid-session?** → Pull out your phone, go to the URL, keep playing
+- **Friend wants to try?** → Send them the link, they're playing in seconds
+- **Testing two ideas?** → Each branch has its own URL, test them back-to-back
+
+**API Keys Are Handled:**
+Vercel stores our API keys (OpenAI, ElevenLabs) server-side, which means:
+- The live version has all features working
+- Players don't need their own API keys
+- No setup required - just visit and play
+- Keys stay secure, not exposed in code
+
+**Real Park Scenario:**
+You're testing a new mechanic, laptop at 5% battery. You wanna play the latest version with someone. You quickly do a push on git hub. Laptop dies. You grab your phone, navigate to the-next-big-game.vercel.app, and your new mechanic is part of the game. We can continue playing it while laptop stays home to charge if need be.
+
+**For Devs:**
+You don't need to know anything about deployment. Just push your code to GitHub, and Vercel handles the rest. Focus on making fun games, not DevOps. So basically ... don't even think about Vercel. Just know that there's a link at the ready to access the game at any time (https://the-next-big-game.vercel.app)
 
 
 
@@ -294,6 +346,30 @@ Claude creates `ghost-whisper-mechanic.md` with a beautifully written descriptio
 
 Of course, you can always just create a file directly in `/idea scratchpad/` and write your idea yourself.
 
+
+
+
+
+
+
+
+
+------------------------------------------------------------------
+## CONTRIBUTING & COLLABORATION
+------------------------------------------------------------------
+
+**Repository**: https://github.com/preetoshii/the-next-big-game
+
+**Quick Start for New Contributors:**
+```bash
+git clone https://github.com/preetoshii/the-next-big-game.git
+cd the-next-big-game
+npm install
+cp .env.example .env  # Add your API keys if using AI features
+npm run dev
+```
+
+**Remember**: Every branch automatically gets its own Vercel preview URL, so it's really easy to test different versions one after the other while we're outdoors.
 
 
 
