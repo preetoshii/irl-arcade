@@ -1,7 +1,7 @@
 # Audio Game Project Context
 
-## Project Philosophy
-We're building a physical game where audio IS the game equipment. We're optimizing for **discovery through play** and **sustainable experimentation**. The scope is intentionally undefined - we want to find what's fun first, then polish what works.
+## Development Philosophy
+Every line of code has a proper home in our 5-folder architecture. We prioritize **organized, modular, non-destructive, predictable code** where developers always know where things belong and why. Through clear architectural explanations and constant reinforcement, we ensure the codebase remains clean, understandable, and maintainable - no mysteries, no spaghetti, just confidence in the structure.
 
 ## Architecture-First Development
 
