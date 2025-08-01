@@ -10,7 +10,8 @@
  */
 
 import { motion } from 'framer-motion'
-import { useGameState } from '../state/GameState'
+import { useGameState } from '../../state/GameState'
+import styles from './ExampleButton.module.css'
 
 
 const ExampleButton = () => {
@@ -28,7 +29,7 @@ const ExampleButton = () => {
 
   return (
     <motion.button
-      className="example-button"
+      className={styles.button}
       onClick={handleClick}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}

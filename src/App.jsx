@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import './App.css'
-import PlayerSetup from './interface/PlayerSetup'
-import { useGameStore } from './state/GameState'
 
 // Global Game object for console experimentation
 window.Game = {
@@ -11,8 +9,6 @@ window.Game = {
 }
 
 function App() {
-  const { gameStarted, players } = useGameStore()
-  
   // Initialize speech synthesis
   useEffect(() => {
     // Simple speak function ready to use
@@ -27,40 +23,19 @@ function App() {
     window.Game.speak = speak
     
     // Test it's working
-    if (!gameStarted) {
-      speak("Audio system ready!")
-    }
-  }, [gameStarted])
-  
-  // Announce game start
-  useEffect(() => {
-    if (gameStarted && players.length > 0) {
-      const playerNames = players.map(p => p.name).join(', ')
-      window.Game.speak(`Game starting with players: ${playerNames}`)
-    }
-  }, [gameStarted, players])
+    speak("Audio system ready!")
+  }, [])
 
   return (
     <div className="App">
-      <PlayerSetup />
+      <motion.h1 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        Audio Game Lab
+      </motion.h1>
       
-      {gameStarted && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="game-content"
-        >
-          <h2>Game in Progress</h2>
-          <div className="active-players">
-            <h3>Players:</h3>
-            {players.map((player, index) => (
-              <div key={index} className="player-badge">
-                {player.name}
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
+      <p>Open console and try: <code>Game.speak("Hello world")</code></p>
     </div>
   )
 }
