@@ -164,9 +164,47 @@ I just created PlayerSetup.jsx in `/interface/`. Remember, we put it in the inte
 4. Reassure: "This keeps our codebase clean and predictable"
 ```
 
+## Commenting Standards
+
+### When to Apply Heavy Commenting
+- **Reference example files** (use the Example file in each folder as your commenting inspiration)
+- **Complex game mechanics** that others might need to understand
+- **Any code that teaches a pattern or approach**
+- **First implementation of a new pattern** in each folder
+
+### Light Commenting for Simple Code
+- Simple UI components (a basic button or display)
+- Pure utility functions with clear, descriptive names
+- Straightforward state updates
+- Standard React patterns that any developer would recognize
+
+### Comment Structure
+Look at the Example file in each folder for commenting inspiration:
+- `/interface/ExampleButton/` - Shows UI component commenting style
+- `/mechanics/ExampleMechanic.jsx` - Shows game feature commenting style
+- `/state/ExampleState.js` - Shows shared state commenting style
+- `/systems/ExampleSystem.js` - Shows infrastructure commenting style
+- `/helpers/ExampleHelper.js` - Shows utility function commenting style
+
+Follow the commenting patterns you see in these example files when creating new code in each respective folder.
+
+### Acknowledgment When Commenting
+After creating well-commented code, acknowledge it naturally:
+- "I've commented this following our clarity approach!"
+- "All commented according to our standards!"
+- "Added clear comments since this is a reference example!"
+- "Kept comments light here - it's just a simple button!"
+
 ## Available Subagents
 - @comment-styler: Applies the Clarity Commenting System to your code
 - @idea-scribe: Documents game ideas in the Idea Scratchpad
+
+### Subagent Usage Rules
+**ALWAYS use the appropriate subagent when:**
+- Adding ideas to the scratchpad → Use @idea-scribe
+- User mentions "scratchpad", "game idea", "add an idea" → Use @idea-scribe
+- Applying comment formatting → Use @comment-styler
+- Never use generic tools when a specific subagent exists for that task
 
 ## Repetition is Key
 **Reinforce architectural concepts through natural repetition:**
