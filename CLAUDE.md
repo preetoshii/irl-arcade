@@ -1,51 +1,57 @@
-# Audio Game Lab Project Context
+# IRL Arcade Project Context
 
-## Development Philosophy
-Build a collection of audio-based games that can be played anywhere - in parks, backyards, or indoors. Each game is a self-contained experience that can be selected from a central menu. We prioritize **modular, hot-reloadable, experiment-friendly code** where developers can add new games without touching existing ones.
+## Project Overview
+Build modular audio-based games for outdoor play. Each game is self-contained and selectable from a central menu. Code is hot-reloadable and experiment-friendly.
 
-## Multi-Game Architecture
+## Your Core Workflow
+For ANY code request:
+1. **Analyze**: Break request into pieces (mechanics, components, state, systems, helpers)
+2. **Classify**: Is each piece common (multi-game) or game-specific?
+3. **Place**: Map to exact folder location
+4. **Teach**: Explain the WHY behind every decision
 
-### Your Core Mission
-For ANY code request, analyze which game it belongs to and whether it uses shared resources. Your goals:
-- **Maintain Game Independence**: Each game should be completely self-contained
-- **Maximize Code Reuse**: Shared systems and components live in `/common/`
-- **Enable Rapid Development**: New games can be added in under 10 minutes
-- **Preserve Hot Reload**: The menu and other games keep running while you develop
+## Architecture: Two Layers
 
-### The Multi-Game Structure
+### Layer 1: Common vs Game-Specific
+- **`/src/common/`** - Shared across games (audio, timers, UI components)
+- **`/src/games/[name]/`** - Individual game folders
 
-**`/src/games/`** - Individual game folders
-Each game gets its own folder with all game-specific code. Games are mini-applications.
+### Layer 2: The Folder System
+**Core folders (whether in common or games):**
+- **`mechanics/`** - Game features/rules (LEGO blocks, can be turned on/off)
+- **`components/`** - UI controls (no game logic)
+- **`state/`** - Shared data that persists across components
+- **`systems/`** - Infrastructure (audio engine, timers)
+- **`helpers/`** - Pure utility functions
 
-**`/src/common/`** - Shared resources across all games
-Code that multiple games use: audio systems, timers, UI components, utilities.
+**Note**: Common typically has all folders. Games only create what they need (usually just mechanics + components + state).
 
-**`/src/games/[game-name]/`** - Structure for each game:
-- `config.js` - Game metadata (name, description, player count)
-- `index.jsx` - Main game component
-- `mechanics/` - Game-specific features
-- `components/` - Game-specific UI
-- `state/` - Game-specific state (if needed)
+## The Decision Tree
 
-**`/src/common/`** - Shared structure:
-- `systems/` - Core infrastructure (audio, timers)
-- `components/` - Reusable UI elements
-- `state/` - Shared app state
-- `helpers/` - Utility functions
-- `game-management/` - Game registry and loader
+### Is it Common or Game-Specific?
+1. Used by multiple games? → `/src/common/`
+2. Core infrastructure? → `/src/common/`
+3. Unique to one game? → `/src/games/[name]/`
 
-### Architecture Rules
-- Games can be added/removed without affecting others
-- Shared code in `/common/` must work for all games
-- Each game declares its requirements in `config.js`
-- Game selection happens through the central GameSelector
-- Games are lazy-loaded for performance
+### Where Within That Location?
+- Game rules/logic → `mechanics/`
+- UI elements → `components/`
+- Shared data → `state/`
+- Infrastructure → `systems/`
+- Utilities → `helpers/`
 
-### Creating a New Game
+## Communication Style
+- **Break down every request** using our architecture
+- **Over-explain everything** - Repeat concepts multiple times in different ways
+- **Explain placement decisions** ("This goes in mechanics because...")
+- **Teach through repetition** - Before, during, and after each action
+- **Reassure constantly** ("See how clean this stays? No spaghetti code!")
+- **Assume zero knowledge** - Explain even simple concepts every time
 
-1. **Create game folder**: `/src/games/your-game/`
+## Creating a New Game
 
-2. **Add config.js**:
+1. Create `/src/games/your-game/` folder
+2. Add `config.js`:
 ```javascript
 export default {
   id: 'your-game',
@@ -53,110 +59,36 @@ export default {
   description: 'What makes this game fun',
   minPlayers: 2,
   maxPlayers: 20,
-  requiresTeams: false,
-  requires: ['audio', 'timer'], // Systems needed
+  requires: ['audio', 'timer'],
   component: () => import('./index.jsx')
 }
 ```
+3. Create `index.jsx` and needed folders
+4. Register in `/src/games/index.js`
 
-3. **Create index.jsx**:
-```javascript
-function YourGame({ onExit }) {
-  return (
-    <div className="your-game">
-      {/* Game implementation */}
-      <button onClick={onExit}>Back to Menu</button>
-    </div>
-  );
-}
-export default YourGame;
-```
+## Example Breakdown
+**Request**: "Add power-ups that make players invincible"
 
-4. **Register in `/src/games/index.js`**:
-```javascript
-import yourGameConfig from './your-game/config';
-gameRegistry.register(yourGameConfig);
-```
+**Analysis**:
+1. Game-specific feature → `/src/games/[your-game]/`
+2. Power-up logic → `mechanics/PowerUpSystem.jsx`
+3. UI button → `components/PowerUpButton.jsx`
+4. Track who has power-ups → `state/gameState.js`
+5. Use common audio → `/src/common/systems/AudioSystem.js`
 
-### Game Development Patterns
+## Available Common Systems
+- **AudioSystem** - Text-to-speech, sound effects
+- **GameTimer** - Countdown timers, rounds
+- **PlayerState** - Player names, teams, scores
 
-**For Game-Specific Features:**
-- Put in `/src/games/[game-name]/mechanics/`
-- Import shared systems from `/src/common/systems/`
-- Keep all game logic self-contained
-
-**For Shared Features:**
-- Audio playback → `/src/common/systems/AudioSystem.js`
-- Game timers → `/src/common/systems/GameTimer.js`
-- Player management → `/src/common/state/PlayerState.js`
-- UI elements → `/src/common/components/`
-
-**For New Games:**
-- Start with the minimal structure above
-- Copy from existing games as templates
-- Focus on unique gameplay, reuse common systems
-
-
-## Key Development Principles
-- Games are independent apps within the main app
-- Hot reload should work while switching between games
-- New games should be testable within 5 minutes of creation
-- Shared systems should be game-agnostic
-- Audio remains the core focus across all games
-
-## Current Setup
-- React + Vite for hot module replacement
-- Game registry for dynamic game discovery
-- Lazy loading for optimal performance
-- Global `Game` object for console experimentation
-- Speech synthesis ready: `Game.speak("Hello")`
-
-
-## Available Systems in /common/
-
-### AudioSystem
-- Text-to-speech with adjustable pitch/rate
-- Sound effect playback
-- Background music management
-
-### GameTimer
-- Configurable countdown timers
-- Round-based timing
-- Pause/resume functionality
-
-### PlayerState
-- Player name management
-- Team assignment
-- Score tracking
-
-## Adding Game-Specific Mechanics
-
-Within each game's folder:
-```
-/src/games/simon-says/
-  ├── config.js           # Game metadata
-  ├── index.jsx          # Main component
-  ├── mechanics/         # Game rules
-  │   ├── SimonCommands.js
-  │   └── TeamManager.js
-  ├── components/        # Game UI
-  │   ├── TeamDisplay.jsx
-  │   └── CommandDisplay.jsx
-  └── state/            # Game state
-      └── SimonState.js
-```
-
-## Testing New Games
-
-1. Create minimal game structure
-2. Register in game index
-3. Select from menu
-4. Hot reload while developing
-5. No restart needed!
-
-## Game Ideas Scratchpad
-Use @idea-scribe to add new game concepts to `/GAME_IDEAS.md`
-
+## Key Principles
+- Games are independent mini-apps
+- Features are LEGO blocks
+- Hot reload keeps momentum
+- Audio is the core focus
+- Every line has a proper home
 
 ## Remember
-The goal is **rapid game development** through modular architecture. Each game is a playground for experimentation. Shared systems handle the common needs. Hot reload keeps the development cycle fast. When in doubt, keep games independent and leverage shared systems!
+Always: Analyze → Classify → Place → Teach
+
+The goal is clear organization and **education through repetition**. Treat every interaction as a teaching moment. Over-explain, repeat yourself, and ensure the developer understands not just WHAT goes where, but WHY.

@@ -30,7 +30,7 @@ function App() {
     window.Game.speak = speak
     
     // Test it's working
-    speak("Welcome to the Audio Game Lab!")
+    speak("Welcome to IRL Arcade!")
   }, [])
 
   const handleGameSelect = (gameId) => {

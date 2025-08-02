@@ -9,7 +9,7 @@
 
 ### What We're Building
 -------------------------
-A physical game that uses **audio as the prop** instead of traditional equipment like balls or nets. The app connects to a Bluetooth speaker, and players interact with each other based on what they hear. Think of audio itself as the game equipment - the thing that shapes how people move, react, and play together.
+A platform for **audio-based games** that can be played outdoors. Instead of traditional equipment like balls or nets, audio itself becomes the game prop or conductor. The app connects to a Bluetooth speaker and offers a menu of different games - from Simon Says to Tag to games we haven't invented yet. Each game is a self-contained experience where players interact based on what they hear.
 
 
 
@@ -27,7 +27,7 @@ A physical game that uses **audio as the prop** instead of traditional equipment
 - Could stay simple audio-only
 - Could add AI-generated voices and dynamic narratives
 - If we get really passionate, who knows what weird features we'd want - like a director mode where someone controls the chaos, or visual effects, or scoring systems
-- Could become multiple game types or an entire platform
+- Which games will be the most fun - that's why we built a platform to experiment
 - The scope is intentionally undefined
 
 **Core Philosophy**: We want to discover what's fun through experimentation, not plan everything upfront. Our architecture should support our experimentation and accommodate future scope, even if we never reach it.
@@ -86,12 +86,12 @@ Claude Code is more ideal due to our Claude agents and subagents that create cod
 -------------------------
 Checkpoint working states when you find something fun, enable branching for wild experiments without breaking the main game, natural collaboration point for multiple developers.
 
-**Our Repository**: https://github.com/preetoshii/the-next-big-game
+**Our Repository**: https://github.com/preetoshii/irl-arcade
 
 Clone it to start contributing:
 ```bash
-git clone https://github.com/preetoshii/the-next-big-game.git
-cd the-next-big-game
+git clone https://github.com/preetoshii/irl-arcade.git
+cd irl-arcade
 npm install
 npm run dev
 ```
@@ -116,7 +116,7 @@ Auto-deploy on push means every git commit gives you a playable URL. When laptop
 
 Think of Vercel as a magical host that turns your GitHub code into a live website anyone can access. No servers to manage, no deployment scripts to write - just push your code and boom, it's live on the internet.
 
-**Here's our Live URL!**: https://the-next-big-game.vercel.app
+**Here's our Live URL!**: https://irl-arcade.vercel.app
 
 **How It Works:**
 1. You push code to GitHub
@@ -125,8 +125,8 @@ Think of Vercel as a magical host that turns your GitHub code into a live websit
 4. Anyone with the link can play - no installation needed
 
 **The Magic Part:**
-- **Main branch** → Updates the production URL (the-next-big-game.vercel.app)
-- **Any other branch** → Gets its own preview URL (like `the-next-big-game-feature-name.vercel.app`)
+- **Main branch** → Updates the production URL (irl-arcade.vercel.app)
+- **Any other branch** → Gets its own preview URL (like `irl-arcade-feature-name.vercel.app`)
 - **Laptop dies mid-session?** → Pull out your phone, go to the URL, keep playing
 - **Friend wants to try?** → Send them the link, they're playing in seconds
 - **Testing two ideas?** → Each branch has its own URL, test them back-to-back
@@ -139,10 +139,10 @@ Vercel stores our API keys (OpenAI, ElevenLabs) server-side, which means:
 - Keys stay secure, not exposed in code
 
 **Real Park Scenario:**
-You're testing a new mechanic, laptop at 5% battery. You wanna play the latest version with someone. You quickly do a push on git hub. Laptop dies. You grab your phone, navigate to the-next-big-game.vercel.app, and your new mechanic is part of the game. We can continue playing it while laptop stays home to charge if need be.
+You're testing a new mechanic, laptop at 5% battery. You wanna play the latest version with someone. You quickly do a push on git hub. Laptop dies. You grab your phone, navigate to irl-arcade.vercel.app, and your new mechanic is part of the game. We can continue playing it while laptop stays home to charge if need be.
 
 **For Devs:**
-You don't need to know anything about deployment. Just push your code to GitHub, and Vercel handles the rest. Focus on making fun games, not DevOps. So basically ... don't even think about Vercel. Just know that there's a link at the ready to access the game at any time (https://the-next-big-game.vercel.app)
+You don't need to know anything about deployment. Just push your code to GitHub, and Vercel handles the rest. Focus on making fun games, not DevOps. So basically ... don't even think about Vercel. Just know that there's a link at the ready to access the game at any time (https://irl-arcade.vercel.app)
 
 
 
@@ -204,7 +204,7 @@ Just in case we want to add more musical and dynamic elements, like a changing d
 ### Scenario: "What If We Tried..."
 -------------------------------------
 **The Situation**: Mid-game, someone suggests "What if eliminated players became ghosts who could whisper distractions?"
-**How Our Stack Handles It**: With React's component model, this wild idea doesn't require touching any existing code. You create a GhostMode component that listens for eliminated players and gives them their own audio channel. Drop it into your main game component, and suddenly ghosts exist. Don't like it? Remove one line. The core game never knew ghosts existed. Compare this to vanilla, where you'd be threading ghost logic through your entire game loop, touching files you haven't looked at in weeks.
+**How Our Stack Handles It**: This could be a new mechanic for your current game or even a whole new game! Create `/src/games/ghost-tag/mechanics/GhostMode.jsx` that handles eliminated players. The component gives them their own audio channel. Your other games don't even know ghosts exist. Or if multiple games could use ghosts, put it in `/src/common/mechanics/GhostMode.jsx`. Either way, it's isolated and reusable.
 
 
 
@@ -259,8 +259,8 @@ Just in case we want to add more musical and dynamic elements, like a changing d
 
 ### Scenario: "Scope Explosion"
 -------------------------------------
-**The Situation**: Started with simple audio cues, now want scoreboards, team modes, tournaments, seasonal events.
-**How Our Stack Handles It**: Each new system is just another component added to the tree. Want tournaments? That's a component wrapping your existing game. Want seasonal themes? That's a context provider that your audio system can read from. The architecture grows by addition, not modification. Features can be toggled on or off by including or excluding components.
+**The Situation**: Started with Simon Says, now want Tag, Capture the Flag, Murder Mystery, and seasonal variants.
+**How Our Stack Handles It**: Each new game is just another folder in `/src/games/`. Want tournament mode? Add it to `/src/common/systems/TournamentMode.js` and any game can use it. Want seasonal themes? That's `/src/common/components/SeasonalTheme.jsx`. The platform grows by addition - add new games without touching existing ones. Each game declares what it needs in its config.
 
 
 
@@ -275,36 +275,51 @@ Just in case we want to add more musical and dynamic elements, like a changing d
 ## HOW OUR CODEBASE IS ORGANIZED
 ------------------------------------------------------------------
 
-We've structured our code to match how game developers think, and free them up to just do that thinking. When you say "Hmmm I want a mechanic where players get shields that last 5 seconds," we can BREAK THAT request down into our architecture which knows exactly where everything goes.
+We've built a two-layer architecture that supports multiple games while keeping code organized. When you say "I want to add a shield mechanic to my game," we know exactly where it goes - and whether it should be shared or game-specific.
 
-**The Five-Folder System:**
+**Layer 1: Common vs Game-Specific**
 
-**`/mechanics/`** - Self-contained game features (like "Shield Mode" or "Player Callouts")
-Each file is one complete game mechanic that can be turned on/off independently. These are your LEGO blocks.
+**`/src/common/`** - Shared across all games
+Infrastructure that multiple games use: audio systems, timers, player management, reusable UI components.
 
-**`/state/`** - Shared data all mechanics can read/write (who's playing, who's "it", scores)
-This is the game's memory that persists across different mechanics and UI components.
+**`/src/games/[name]/`** - Individual game folders
+Each game is a mini-application with its own rules, mechanics, and UI. Games can be added/removed without affecting others.
 
-**`/systems/`** - Core infrastructure that makes mechanics work (audio engine, game timer)
-These are the foundational services that mechanics build on top of. You can't turn these off.
+**Layer 2: The Folder System (applies within both common and games)**
 
-**`/interface/`** - UI controls for humans (player lists, start button, settings)
-How players interact with and configure the game. No game logic here, just controls.
+**`mechanics/`** - Game features and rules (like "Shield Mode" or "Tag Logic")
+Self-contained features that can be turned on/off. These are your LEGO blocks.
 
-**`/helpers/`** - Pure utility functions (pick random player, calculate time, format text)
-Simple functions that transform input to output. No React, no state, just math and logic.
+**`state/`** - Data that persists across components (players, scores, game status)
+The memory that components share. Common state is app-wide, game state is game-specific.
+
+**`systems/`** - Core infrastructure (audio engine, timers)
+Foundational services that mechanics build on. Usually only in `/common/`.
+
+**`components/`** - UI elements (player lists, buttons, displays)
+How players interact with games. No game logic here, just UI controls.
+
+**`helpers/`** - Pure utility functions (randomization, calculations, formatting)
+Simple functions with no side effects. Input → Output.
 
 
 **Why This Structure Works:**
 
-When you have a game idea, it naturally breaks down:
-- "Players can activate shields" → New mechanic in `/mechanics/ShieldMode.jsx`
-- "Track who has shields" → Add to game state in `/state/GameState.js`
-- "Show shield status in UI" → Update interface in `/interface/PlayerList.jsx`
-- "Play shield sound" → Use the audio system in `/systems/AudioEngine.js`
-- "Pick random shield duration" → Helper function in `/helpers/random.js`\
+When you have a game idea, it naturally breaks down. First ask: "Is this specific to my game or could other games use it?"
 
-Every idea fits a clear structure—no file hunting, no confusion. It mirrors how we think about games, freeing us to focus on fun, with everything in its place (and AI able to automate it without us feeling scared of the kind of mess it might be making beneath the scenes).
+**Example: Adding shields to a specific game**
+- "Shield mechanic for my game" → `/src/games/shield-tag/mechanics/ShieldMode.jsx`
+- "Track who has shields" → `/src/games/shield-tag/state/gameState.js`
+- "Show shield button" → `/src/games/shield-tag/components/ShieldButton.jsx`
+- "Play shield sound" → Use `/src/common/systems/AudioSystem.js`
+- "Calculate shield duration" → `/src/games/shield-tag/helpers/shieldCalculations.js`
+
+**Example: Adding a feature all games could use**
+- "Countdown timer system" → `/src/common/systems/GameTimer.js`
+- "Player name display" → `/src/common/components/PlayerList.jsx`
+- "Random player picker" → `/src/common/helpers/randomPlayer.js`
+
+Every idea has a clear home—no confusion about where things go or why.
 
 
 **The Magic:**
@@ -319,8 +334,56 @@ This lets us go from "what if..." to testable feature in minutes, not hours.
 
 
 
+------------------------------------------------------------------
+## CREATING A NEW GAME
+------------------------------------------------------------------
 
+**1. Create your game folder**
+```
+/src/games/your-game-name/
+```
 
+**2. Add a config.js file**
+```javascript
+export default {
+  id: 'your-game-name',
+  name: 'Your Game Display Name',
+  description: 'A fun game where players...',
+  minPlayers: 2,
+  maxPlayers: 20,
+  requires: ['audio', 'timer'], // What common systems you need
+  component: () => import('./index.jsx')
+}
+```
+
+**3. Create your main game component (index.jsx)**
+```javascript
+function YourGame({ onExit }) {
+  // Your game logic here
+  return (
+    <div className="your-game">
+      <h1>Your Game</h1>
+      {/* Game UI */}
+      <button onClick={onExit}>Back to Menu</button>
+    </div>
+  );
+}
+export default YourGame;
+```
+
+**4. Add folders as needed**
+- Need game rules? Create `mechanics/`
+- Need UI elements? Create `components/`
+- Need to track state? Create `state/`
+- Most games only need 2-3 folders
+
+**5. Register in /src/games/index.js**
+```javascript
+import yourGameConfig from './your-game-name/config';
+gameRegistry.register(yourGameConfig);
+```
+
+That's it! Your game now appears in the menu and can be played immediately.
 
 
 
@@ -334,17 +397,14 @@ Sometimes the best ideas hit you mid-coding session. Maybe you're working on pla
 **Quick Capture Method:**
 Just tell Claude or Cursor: "Add this idea to the idea scratchpad: [your messy idea]"
 
-That's it! In Claude, we have a subagent that will automatically:
-- Create a neat file in the `/idea scratchpad/` folder
-- Give it a descriptive filename
-- Transform your messy thought into eloquent natural language
-- Capture all the nuances that make the idea special
+That's it! The @idea-scribe subagent will automatically add your idea to `/GAME_IDEAS.md` with a timestamp and clean formatting.
 
 **Example:**
 You: "Add to idea scratchpad: ok so like what if when youre tagged you become a ghost but you can only whisper to one person at a time and they dont know if youre helping or tricking them"
-Claude creates `ghost-whisper-mechanic.md` with a beautifully written description that captures the paranoia and social dynamics of your idea.
 
-Of course, you can always just create a file directly in `/idea scratchpad/` and write your idea yourself.
+The idea gets added to GAME_IDEAS.md, beautifully formatted with all the paranoia and social dynamics captured.
+
+Of course, you can always just edit `/GAME_IDEAS.md` directly to add your ideas.
 
 
 
@@ -358,12 +418,12 @@ Of course, you can always just create a file directly in `/idea scratchpad/` and
 ## CONTRIBUTING & COLLABORATION
 ------------------------------------------------------------------
 
-**Repository**: https://github.com/preetoshii/the-next-big-game
+**Repository**: https://github.com/preetoshii/irl-arcade
 
 **Quick Start for New Contributors:**
 ```bash
-git clone https://github.com/preetoshii/the-next-big-game.git
-cd the-next-big-game
+git clone https://github.com/preetoshii/irl-arcade.git
+cd irl-arcade
 npm install
 cp .env.example .env  # Add your API keys if using AI features
 npm run dev
