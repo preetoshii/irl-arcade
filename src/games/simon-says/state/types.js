@@ -137,7 +137,7 @@ export const PlayType = {
 /**
  * A block is a segment of the match (ceremony, round, relax)
  */
-export const BlockType = {
+export const Block = {
   type: 'BlockType',
   index: 'number',          // Position in match
   startTime: 'timestamp',

@@ -4,7 +4,8 @@
  */
 
 // Event system
-export { default as eventBus, Events, EventBus, TypedEventBus } from './EventBus';
+export { default as eventBus, EventBus, TypedEventBus } from './EventBus';
+export { Events } from './EventBus';
 
 // State management
 export { default as stateStore, StateStore, StateKeys } from './StateStore';

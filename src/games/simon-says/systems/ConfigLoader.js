@@ -45,19 +45,19 @@ const DEFAULT_DEVELOPER_CONFIG = {
     patterns: {
       // Patterns are defined per match length
       5: [
-        { id: 'burst', sequence: ['opening', 'round', 'round', 'relax', 'round', 'round', 'round', 'closing'] },
-        { id: 'steady', sequence: ['opening', 'round', 'round', 'round', 'relax', 'round', 'round', 'closing'] },
-        { id: 'gentle', sequence: ['opening', 'round', 'relax', 'round', 'round', 'round', 'round', 'closing'] }
+        { id: 'burst', sequence: ['ceremony', 'round', 'round', 'relax', 'round', 'round', 'round', 'ceremony'] },
+        { id: 'steady', sequence: ['ceremony', 'round', 'round', 'round', 'relax', 'round', 'round', 'ceremony'] },
+        { id: 'gentle', sequence: ['ceremony', 'round', 'relax', 'round', 'round', 'round', 'round', 'ceremony'] }
       ],
       10: [
-        { id: 'classic', sequence: ['opening', 'round', 'round', 'round', 'relax', 'round', 'round', 'relax', 'round', 'round', 'round', 'round', 'closing'] },
-        { id: 'rhythm', sequence: ['opening', 'round', 'round', 'relax', 'round', 'round', 'relax', 'round', 'round', 'relax', 'round', 'round', 'closing'] },
-        { id: 'building', sequence: ['opening', 'round', 'relax', 'round', 'round', 'relax', 'round', 'round', 'round', 'relax', 'round', 'round', 'round', 'closing'] }
+        { id: 'classic', sequence: ['ceremony', 'round', 'round', 'round', 'relax', 'round', 'round', 'relax', 'round', 'round', 'round', 'round', 'ceremony'] },
+        { id: 'rhythm', sequence: ['ceremony', 'round', 'round', 'relax', 'round', 'round', 'relax', 'round', 'round', 'relax', 'round', 'round', 'ceremony'] },
+        { id: 'building', sequence: ['ceremony', 'round', 'relax', 'round', 'round', 'relax', 'round', 'round', 'round', 'relax', 'round', 'round', 'round', 'ceremony'] }
       ],
       15: [
-        { id: 'three-acts', sequence: ['opening', 'round', 'round', 'round', 'relax', 'round', 'round', 'round', 'round', 'relax', 'round', 'round', 'round', 'round', 'round', 'round', 'closing'] },
-        { id: 'regular', sequence: ['opening', 'round', 'round', 'relax', 'round', 'round', 'round', 'relax', 'round', 'round', 'relax', 'round', 'round', 'round', 'relax', 'round', 'round', 'closing'] },
-        { id: 'endurance', sequence: ['opening', 'round', 'round', 'relax', 'round', 'round', 'round', 'round', 'relax', 'round', 'round', 'round', 'round', 'round', 'round', 'round', 'closing'] }
+        { id: 'three-acts', sequence: ['ceremony', 'round', 'round', 'round', 'relax', 'round', 'round', 'round', 'round', 'relax', 'round', 'round', 'round', 'round', 'round', 'round', 'ceremony'] },
+        { id: 'regular', sequence: ['ceremony', 'round', 'round', 'relax', 'round', 'round', 'round', 'relax', 'round', 'round', 'relax', 'round', 'round', 'round', 'relax', 'round', 'round', 'ceremony'] },
+        { id: 'endurance', sequence: ['ceremony', 'round', 'round', 'relax', 'round', 'round', 'round', 'round', 'relax', 'round', 'round', 'round', 'round', 'round', 'round', 'round', 'ceremony'] }
       ],
       30: [
         { id: 'quarters', sequence: generateQuartersPattern(30) },
@@ -154,7 +154,7 @@ const DEFAULT_DEVELOPER_CONFIG = {
 // ============================================
 
 function generateQuartersPattern(rounds) {
-  const pattern = ['opening'];
+  const pattern = ['ceremony'];
   const quarterSize = Math.floor(rounds / 4);
   
   for (let quarter = 0; quarter < 4; quarter++) {
@@ -170,12 +170,12 @@ function generateQuartersPattern(rounds) {
     pattern.push('round');
   }
   
-  pattern.push('closing');
+  pattern.push('ceremony');
   return pattern;
 }
 
 function generateWavePattern(rounds) {
-  const pattern = ['opening'];
+  const pattern = ['ceremony'];
   const waves = [3, 4, 5, 5, 4, 3]; // Wave sizes
   let roundsAdded = 0;
   
@@ -197,12 +197,12 @@ function generateWavePattern(rounds) {
     roundsAdded++;
   }
   
-  pattern.push('closing');
+  pattern.push('ceremony');
   return pattern;
 }
 
 function generateSprintPattern(rounds) {
-  const pattern = ['opening'];
+  const pattern = ['ceremony'];
   const sprintPattern = [5, 3]; // Alternating sprint/recovery
   let roundsAdded = 0;
   let sprintIndex = 0;
@@ -220,7 +220,7 @@ function generateSprintPattern(rounds) {
     sprintIndex++;
   }
   
-  pattern.push('closing');
+  pattern.push('ceremony');
   return pattern;
 }
 

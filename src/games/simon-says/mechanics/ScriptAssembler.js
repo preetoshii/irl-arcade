@@ -563,6 +563,12 @@ class ScriptAssembler {
     tokens.totalRounds = context.totalRounds || 10;
     tokens.duration = Math.round((context.matchDuration || 1800) / 60);
     
+    // Team tokens from context
+    if (context.teamNames && context.teamNames.length >= 2) {
+      tokens.team1 = context.teamNames[0];
+      tokens.team2 = context.teamNames[1];
+    }
+    
     // Generic tokens
     tokens.everyone = "everyone";
     tokens.teams = "all teams";

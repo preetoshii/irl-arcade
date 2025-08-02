@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import GameSelector from './common/game-management/GameSelector'
 import GameLoader from './common/game-management/GameLoader'
+import SimonSaysDebugPage from './games/simon-says/debug/DebugPage'
 import './App.css'
 
 // Import and register all games
@@ -15,6 +16,7 @@ window.Game = {
 
 function App() {
   const [selectedGame, setSelectedGame] = useState(null);
+  const [showDebug, setShowDebug] = useState(false);
 
   // Initialize speech synthesis
   useEffect(() => {
@@ -39,6 +41,11 @@ function App() {
     setSelectedGame(null);
   };
 
+  // Show debug page if requested
+  if (showDebug) {
+    return <SimonSaysDebugPage onBack={() => setShowDebug(false)} />;
+  }
+
   return (
     <div className="App">
       {!selectedGame ? (
@@ -47,6 +54,30 @@ function App() {
           animate={{ opacity: 1 }}
         >
           <GameSelector onGameSelect={handleGameSelect} />
+          
+          {/* Debug button - small and unobtrusive */}
+          <button 
+            onClick={() => setShowDebug(true)}
+            style={{
+              position: 'fixed',
+              bottom: '20px',
+              right: '20px',
+              background: '#333',
+              color: '#0f0',
+              border: '1px solid #0f0',
+              padding: '8px 16px',
+              fontSize: '12px',
+              fontFamily: 'JetBrains Mono, monospace',
+              cursor: 'pointer',
+              opacity: 0.7,
+              transition: 'opacity 0.2s',
+              zIndex: 1000
+            }}
+            onMouseEnter={(e) => e.target.style.opacity = '1'}
+            onMouseLeave={(e) => e.target.style.opacity = '0.7'}
+          >
+            Debug Simon Says
+          </button>
         </motion.div>
       ) : (
         <GameLoader 

@@ -271,11 +271,11 @@ class PatternSelector {
     const sequence = pattern.sequence;
     
     // Check required rules
-    if (!PATTERN_RULES.ALWAYS_START_WITH_OPENING || sequence[0] !== 'opening') {
+    if (PATTERN_RULES.ALWAYS_START_WITH_OPENING && sequence[0] !== 'ceremony') {
       errors.push('Pattern must start with opening ceremony');
     }
     
-    if (!PATTERN_RULES.ALWAYS_END_WITH_CLOSING || sequence[sequence.length - 1] !== 'closing') {
+    if (PATTERN_RULES.ALWAYS_END_WITH_CLOSING && sequence[sequence.length - 1] !== 'ceremony') {
       errors.push('Pattern must end with closing ceremony');
     }
     

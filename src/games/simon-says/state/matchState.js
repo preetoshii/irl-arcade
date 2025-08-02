@@ -8,6 +8,7 @@
 
 import { MatchStatus, BlockType } from './types';
 import { STATE_CONFIG } from './constants';
+import { eventBus, Events } from '../systems';
 
 // ============================================
 // MATCH STATE DEFINITION
@@ -83,6 +84,7 @@ class MatchState {
     };
     
     this.notifyListeners('match_initialized', this.match);
+    eventBus.emit(Events.MATCH_INITIALIZED, { id: matchId, match: this.match });
     return matchId;
   }
 
@@ -117,6 +119,7 @@ class MatchState {
     this.match.lastUpdateTime = Date.now();
     
     this.notifyListeners('match_started', this.match);
+    eventBus.emit(Events.MATCH_STARTED, { match: this.match });
   }
 
   /**
@@ -127,6 +130,7 @@ class MatchState {
     this.updateElapsedTime();
     
     this.notifyListeners('match_completed', this.match);
+    eventBus.emit(Events.MATCH_COMPLETED, { match: this.match });
   }
 
   /**
@@ -137,6 +141,7 @@ class MatchState {
     this.updateElapsedTime();
     
     this.notifyListeners('match_abandoned', { match: this.match, reason });
+    eventBus.emit(Events.MATCH_ABANDONED, { match: this.match, reason });
   }
 
   // ============================================
@@ -177,6 +182,7 @@ class MatchState {
     this.match.currentBlockIndex++;
     
     this.notifyListeners('block_started', block);
+    eventBus.emit(Events.BLOCK_STARTED, { blockType, block, play });
     return block;
   }
 
@@ -200,6 +206,11 @@ class MatchState {
     
     this.updateElapsedTime();
     this.notifyListeners('block_completed', completedBlock);
+    console.log('[MatchState] Emitting BLOCK_COMPLETED event for block:', completedBlock);
+    console.log('[MatchState] EventBus instance:', eventBus);
+    console.log('[MatchState] EventBus listeners for BLOCK_COMPLETED:', eventBus.listenerCount(Events.BLOCK_COMPLETED));
+    eventBus.emit(Events.BLOCK_COMPLETED, { block: completedBlock });
+    console.log('[MatchState] BLOCK_COMPLETED event emitted');
     
     // Check if match is complete
     if (this.match.currentBlockIndex >= this.match.patternSequence.length - 1) {

@@ -1,0 +1,442 @@
+/**
+ * Debug Page for Simon Says Architecture Testing
+ * 
+ * This page provides a comprehensive testing interface for the Simon Says
+ * architecture, allowing developers to verify all systems are working correctly
+ * before building the full UI. It exposes internal state and provides controls
+ * to trigger various game scenarios.
+ */
+
+import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import styles from './DebugPage.module.css';
+
+// Import all our systems
+import { 
+  eventBus, 
+  Events, 
+  configLoader, 
+  stateStore, 
+  StateKeys,
+  performanceSystem 
+} from '../systems';
+
+import { 
+  matchState, 
+  playerRegistry,
+  MatchStatus
+} from '../state';
+
+import matchOrchestrator from '../mechanics/MatchOrchestrator';
+
+function SimonSaysDebugPage({ onBack }) {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [matchStatus, setMatchStatus] = useState('idle');
+  const [currentBlock, setCurrentBlock] = useState(null);
+  const [patternViz, setPatternViz] = useState('');
+  const [logs, setLogs] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [lastPlay, setLastPlay] = useState(null);
+  const [systemStatuses, setSystemStatuses] = useState({});
+  const [currentActivity, setCurrentActivity] = useState('Idle');
+  const [timeInBlock, setTimeInBlock] = useState(0);
+  
+  const logsEndRef = useRef(null);
+  const maxLogs = 50;
+  const initRef = useRef(false);
+  const unsubscribers = useRef([]);
+
+  // Initialize systems on mount
+  useEffect(() => {
+    if (!initRef.current) {
+      initRef.current = true;
+      initializeSystems();
+    }
+    
+    return () => {
+      // Cleanup - Don't remove ALL listeners, just the ones we added
+      // The orchestrator needs its listeners to remain active
+      console.log('[DebugPage] Cleaning up debug page event listeners');
+      unsubscribers.current.forEach(unsub => unsub());
+      unsubscribers.current = [];
+    };
+  }, []);
+
+  // Auto-scroll logs
+  useEffect(() => {
+    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [logs]);
+
+  // Update timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (matchStatus === 'running' && currentBlock) {
+        setTimeInBlock(prev => prev + 1);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [matchStatus, currentBlock]);
+
+  const initializeSystems = async () => {
+    addLog('Initializing Simon Says systems...', 'info');
+    
+    try {
+      // Initialize orchestrator (which initializes all other systems)
+      await matchOrchestrator.initialize();
+      
+      // Subscribe to events for debugging
+      subscribeToDebugEvents();
+      
+      // Set up initial test players
+      setupTestPlayers();
+      
+      setIsInitialized(true);
+      addLog('All systems initialized successfully!', 'success');
+      
+      updateSystemStatuses();
+    } catch (error) {
+      addLog(`Initialization failed: ${error.message}`, 'error');
+      console.error(error);
+    }
+  };
+
+  const subscribeToDebugEvents = () => {
+    // System events
+    unsubscribers.current.push(
+      eventBus.on(Events.SYSTEM_READY, (data) => {
+        addLog(`System ready: ${data.system}`, 'system');
+      })
+    );
+    
+    unsubscribers.current.push(
+      eventBus.on(Events.SYSTEM_ERROR, (data) => {
+        addLog(`System error in ${data.system}: ${data.error?.message}`, 'error');
+      })
+    );
+    
+    // Match events
+    eventBus.on(Events.MATCH_INITIALIZED, (data) => {
+      addLog(`Match initialized: ${data.id}`, 'info');
+    });
+    
+    eventBus.on(Events.MATCH_STARTED, (data) => {
+      addLog('Match started!', 'success');
+      setMatchStatus('running');
+      updatePatternViz();
+    });
+    
+    eventBus.on(Events.MATCH_COMPLETED, () => {
+      addLog('Match completed!', 'success');
+      setMatchStatus('completed');
+    });
+    
+    eventBus.on(Events.MATCH_ABANDONED, (data) => {
+      addLog(`Match abandoned: ${data.reason}`, 'warning');
+      setMatchStatus('abandoned');
+    });
+    
+    // Block events
+    eventBus.on(Events.BLOCK_STARTED, (data) => {
+      addLog(`Block started: ${data.blockType}`, 'info');
+      setCurrentBlock(data);
+      setCurrentActivity(`Performing ${data.blockType} block`);
+      setTimeInBlock(0);
+      updatePatternViz();
+    });
+    
+    eventBus.on(Events.BLOCK_COMPLETED, () => {
+      addLog('Block completed - triggering next block', 'info');
+      setCurrentActivity('Transitioning to next block...');
+      setCurrentBlock(null);
+      updatePatternViz();
+    });
+    
+    // Play events
+    eventBus.on(Events.PLAY_SELECTED, (data) => {
+      const play = data.play;
+      addLog(`Play selected: ${play.roundType} - ${play.variant}`, 'play');
+      setLastPlay(play);
+    });
+    
+    // Performance events
+    eventBus.on(Events.SCRIPT_STARTED, (data) => {
+      addLog(`Speaking: "${data.text}"`, 'speech');
+    });
+    
+    eventBus.on(Events.PERFORMANCE_COMPLETED, () => {
+      addLog('Performance completed', 'info');
+    });
+    
+    // Pattern events
+    eventBus.on(Events.PATTERN_SELECTED, (data) => {
+      addLog(`Pattern selected: ${data.id} (${data.sequence.length} blocks)`, 'info');
+    });
+    
+    eventBus.on(Events.PATTERN_COMPLETE, () => {
+      addLog('Pattern complete - match should end', 'warning');
+    });
+  };
+
+  const setupTestPlayers = () => {
+    const testPlayers = [
+      { name: 'Alice', team: 'Red Team' },
+      { name: 'Bob', team: 'Blue Team' },
+      { name: 'Charlie', team: 'Red Team' },
+      { name: 'Diana', team: 'Blue Team' },
+      { name: 'Eve', team: 'Red Team' },
+      { name: 'Frank', team: 'Blue Team' }
+    ];
+    
+    // Add players and collect their full objects
+    const addedPlayers = [];
+    testPlayers.forEach(player => {
+      try {
+        playerRegistry.addPlayer(player.name, player.team);
+        const addedPlayer = playerRegistry.findPlayerByName(player.name);
+        if (addedPlayer) {
+          addedPlayers.push(addedPlayer);
+        }
+      } catch (error) {
+        addLog(`Failed to add player ${player.name}: ${error.message}`, 'error');
+      }
+    });
+    
+    setPlayers(addedPlayers);
+    addLog(`Added ${addedPlayers.length} test players`, 'info');
+  };
+
+  const startTestMatch = async () => {
+    if (!isInitialized) {
+      addLog('Systems not initialized yet!', 'error');
+      return;
+    }
+    
+    addLog('Starting test match...', 'info');
+    
+    const config = {
+      roundCount: 5,
+      difficultyLevel: 'moderate',
+      difficultyCurve: 'gentle',
+      gameFocus: ['competitive', 'silly'],
+      teamConfig: {
+        teamCount: 2,
+        teamNames: ['Red Team', 'Blue Team']
+      }
+    };
+    
+    try {
+      await matchOrchestrator.startMatch(config);
+    } catch (error) {
+      addLog(`Failed to start match: ${error.message}`, 'error');
+    }
+  };
+
+  const pauseMatch = () => {
+    matchOrchestrator.pauseMatch();
+    setMatchStatus('paused');
+    addLog('Match paused', 'warning');
+  };
+
+  const resumeMatch = () => {
+    matchOrchestrator.resumeMatch();
+    setMatchStatus('running');
+    addLog('Match resumed', 'info');
+  };
+
+  const endMatch = () => {
+    matchOrchestrator.endMatch('user_ended');
+    setMatchStatus('ended');
+    addLog('Match ended by user', 'warning');
+  };
+
+  const skipToNextBlock = () => {
+    addLog('Simulating block completion...', 'info');
+    eventBus.emit(Events.BLOCK_COMPLETED);
+  };
+
+  const testTTS = async () => {
+    addLog('Testing text-to-speech...', 'info');
+    await performanceSystem.testVoice("Hello! I'm Simon, and this is a test of the speech system!");
+  };
+
+  const updatePatternViz = () => {
+    const viz = matchOrchestrator.getVisualization();
+    setPatternViz(viz || 'No pattern loaded');
+  };
+
+  const updateSystemStatuses = () => {
+    const status = matchOrchestrator.getStatus();
+    setSystemStatuses(status.systemStatus || {});
+  };
+
+  const addLog = (message, type = 'info') => {
+    const timestamp = new Date().toLocaleTimeString();
+    setLogs(prev => {
+      const newLogs = [...prev, { message, type, timestamp }];
+      return newLogs.slice(-maxLogs); // Keep last N logs
+    });
+  };
+
+  const getLogColor = (type) => {
+    switch (type) {
+      case 'error': return '#ff4444';
+      case 'warning': return '#ffaa00';
+      case 'success': return '#00ff88';
+      case 'system': return '#8888ff';
+      case 'play': return '#ff88ff';
+      case 'speech': return '#88ffff';
+      default: return '#ffffff';
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <button onClick={onBack} className={styles.backButton}>
+          ← Back
+        </button>
+        <h1>Simon Says Debug Console</h1>
+        <div className={styles.status}>
+          Status: <span className={matchStatus === 'running' ? styles.running : ''}>{matchStatus}</span>
+        </div>
+      </div>
+
+      <div className={styles.content}>
+        {/* Controls Section */}
+        <div className={styles.section}>
+          <h2>Match Controls</h2>
+          <div className={styles.controls}>
+            <button 
+              onClick={startTestMatch} 
+              disabled={!isInitialized || matchStatus === 'running'}
+              className={styles.primaryButton}
+            >
+              Start Test Match (5 rounds)
+            </button>
+            <button 
+              onClick={pauseMatch} 
+              disabled={matchStatus !== 'running'}
+            >
+              Pause
+            </button>
+            <button 
+              onClick={resumeMatch} 
+              disabled={matchStatus !== 'paused'}
+            >
+              Resume
+            </button>
+            <button 
+              onClick={endMatch} 
+              disabled={!['running', 'paused'].includes(matchStatus)}
+              className={styles.dangerButton}
+            >
+              End Match
+            </button>
+          </div>
+        </div>
+
+        {/* Testing Tools */}
+        <div className={styles.section}>
+          <h2>Testing Tools</h2>
+          <div className={styles.controls}>
+            <button onClick={skipToNextBlock} disabled={matchStatus !== 'running'}>
+              Skip to Next Block
+            </button>
+            <button onClick={testTTS}>
+              Test Speech
+            </button>
+            <button onClick={() => performanceSystem.setMockMode(true)}>
+              Enable Mock TTS
+            </button>
+            <button onClick={updateSystemStatuses}>
+              Refresh Status
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.grid}>
+          {/* Pattern Visualization */}
+          <div className={styles.section}>
+            <h2>Pattern Progress</h2>
+            <div className={styles.patternViz}>
+              {patternViz || 'No pattern loaded'}
+            </div>
+          </div>
+
+          {/* Current State */}
+          <div className={styles.section}>
+            <h2>Current State</h2>
+            <div className={styles.stateInfo}>
+              <div>Match ID: {matchState.getState().id || 'None'}</div>
+              <div>Round: {matchState.getCurrentRoundNumber()} / {matchState.getTotalRounds()}</div>
+              <div>Current Block: {currentBlock?.blockType || 'None'}</div>
+              <div>Progress: {matchState.getProgress()}%</div>
+              <div style={{ borderLeft: '3px solid #ffaa00' }}>
+                Activity: {currentActivity}
+              </div>
+              <div style={{ borderLeft: '3px solid #00ff88' }}>
+                Time in block: {timeInBlock}s
+              </div>
+            </div>
+          </div>
+
+          {/* Players */}
+          <div className={styles.section}>
+            <h2>Players ({players.length})</h2>
+            <div className={styles.playerList}>
+              {players.map(p => (
+                <div key={p.id} className={styles.player}>
+                  {p.name} ({p.team})
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* System Status */}
+          <div className={styles.section}>
+            <h2>System Status</h2>
+            <div className={styles.systemList}>
+              {Object.entries(systemStatuses).map(([system, ready]) => (
+                <div key={system} className={styles.system}>
+                  <span className={ready ? styles.ready : styles.notReady}>●</span>
+                  {system}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Last Play Details */}
+        {lastPlay && (
+          <div className={styles.section}>
+            <h2>Last Play</h2>
+            <div className={styles.playDetails}>
+              <pre>{JSON.stringify(lastPlay, null, 2)}</pre>
+            </div>
+          </div>
+        )}
+
+        {/* Event Log */}
+        <div className={styles.section}>
+          <h2>Event Log</h2>
+          <div className={styles.logContainer}>
+            {logs.map((log, index) => (
+              <div 
+                key={index} 
+                className={styles.logEntry}
+                style={{ color: getLogColor(log.type) }}
+              >
+                <span className={styles.timestamp}>{log.timestamp}</span>
+                <span>{log.message}</span>
+              </div>
+            ))}
+            <div ref={logsEndRef} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default SimonSaysDebugPage;

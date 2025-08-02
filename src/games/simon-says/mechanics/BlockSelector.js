@@ -31,6 +31,7 @@ class BlockSelector {
     
     this.pattern = pattern;
     this.currentIndex = -1;
+    this.patternCompleteEmitted = false;
     
     // Store pattern in state
     stateStore.set(StateKeys.PATTERN_SEQUENCE, pattern.sequence);
@@ -56,10 +57,13 @@ class BlockSelector {
     
     // Check if we've reached the end
     if (nextIndex >= this.pattern.sequence.length) {
-      eventBus.emit(Events.PATTERN_COMPLETE, {
-        pattern: this.pattern,
-        blocksCompleted: nextIndex
-      });
+      if (!this.patternCompleteEmitted) {
+        this.patternCompleteEmitted = true;
+        eventBus.emit(Events.PATTERN_COMPLETE, {
+          pattern: this.pattern,
+          blocksCompleted: nextIndex
+        });
+      }
       return null;
     }
     
@@ -279,6 +283,20 @@ class BlockSelector {
    * This method provides a comprehensive progress report, like a fitness tracker for the match. It tells you not just where you are (block 7 of 15) but interprets that information in multiple ways: percentage complete, rounds finished versus rounds remaining, and what type of block is currently active. This information serves multiple purposes - the UI can show a progress bar, the difficulty system can ramp up as the match progresses, and the script system can add comments like "halfway there!" or "final round!" It transforms raw positional data into meaningful game context.
    */
   getProgress() {
+    if (!this.pattern || !this.pattern.sequence) {
+      return {
+        currentIndex: -1,
+        totalBlocks: 0,
+        blocksCompleted: 0,
+        blocksRemaining: 0,
+        percentComplete: 0,
+        roundsCompleted: 0,
+        roundsRemaining: 0,
+        currentBlock: null,
+        nextBlock: null
+      };
+    }
+    
     return {
       currentIndex: this.currentIndex,
       totalBlocks: this.pattern.sequence.length,
@@ -318,6 +336,7 @@ class BlockSelector {
    */
   reset() {
     this.currentIndex = -1;
+    this.patternCompleteEmitted = false;
     stateStore.set(StateKeys.PATTERN_INDEX, this.currentIndex);
   }
 

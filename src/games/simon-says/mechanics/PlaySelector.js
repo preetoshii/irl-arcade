@@ -7,7 +7,7 @@
  */
 
 import { eventBus, Events, configLoader, stateStore, StateKeys } from '../systems';
-import { playerRegistry, RoundType, getPlayIdentifier } from '../state';
+import { playerRegistry, matchState, RoundType, getPlayIdentifier } from '../state';
 import { 
   DEFAULT_ROUND_WEIGHTS, 
   getPlayerCountAdjustment,
@@ -110,7 +110,7 @@ class PlaySelector {
    */
   selectRoundType(context) {
     const config = configLoader.get('roundTypes', {});
-    const playerCount = context.activePlayerList.length;
+    const playerCount = context.activePlayerList?.length || 0;
     
     // Build options with weights
     const options = [];

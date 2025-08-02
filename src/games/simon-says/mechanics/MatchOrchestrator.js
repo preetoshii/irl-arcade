@@ -108,12 +108,26 @@ class MatchOrchestrator {
    * Subscribe to system events
    */
   subscribeToEvents() {
+    console.log('[MatchOrchestrator] Subscribing to events, eventBus:', eventBus);
+    
     // Match lifecycle events
     eventBus.on(Events.MATCH_COMPLETED, () => this.handleMatchComplete());
     eventBus.on(Events.MATCH_ABANDONED, () => this.handleMatchAbandoned());
     
-    // Block events
-    eventBus.on(Events.BLOCK_COMPLETED, () => this.processNextBlock());
+    // Block events - bind this context
+    const blockHandler = async (data) => {
+      console.log('[MatchOrchestrator] BLOCK_COMPLETED event received:', data);
+      console.log('[MatchOrchestrator] Current isRunning status:', this.isRunning);
+      console.log('[MatchOrchestrator] This context:', this);
+      await this.processNextBlock();
+    };
+    
+    // Store handler reference for debugging
+    this.blockCompletedHandler = blockHandler;
+    
+    const unsubscribe = eventBus.on(Events.BLOCK_COMPLETED, blockHandler);
+    console.log('[MatchOrchestrator] Subscribed to BLOCK_COMPLETED, got unsubscribe function:', typeof unsubscribe);
+    console.log('[MatchOrchestrator] Handler registered:', eventBus.listenerCount(Events.BLOCK_COMPLETED));
     
     // Player events
     eventBus.on(Events.PLAYER_ADDED, (data) => this.handlePlayerAdded(data));
@@ -154,8 +168,8 @@ class MatchOrchestrator {
     console.log('[MatchOrchestrator] Starting match with config:', config);
     
     try {
-      // Reset state
-      this.resetState();
+      // Reset state (but preserve players)
+      this.resetStateExceptPlayers();
       
       // Load match configuration
       configLoader.loadPlayerConfig(config);
@@ -204,7 +218,6 @@ class MatchOrchestrator {
    */
   async processNextBlock() {
     if (!this.isRunning) {
-      console.log('[MatchOrchestrator] Not running, skipping block processing');
       return;
     }
     
@@ -214,23 +227,23 @@ class MatchOrchestrator {
       
       if (!blockInfo) {
         // Pattern complete
-        console.log('[MatchOrchestrator] Pattern complete');
         return;
       }
       
-      console.log('[MatchOrchestrator] Processing block:', blockInfo);
-      
-      // Process based on block type
+      // Process based on block type (don't confirm until successful)
       if (blockInfo.type === BlockType.CEREMONY) {
         await this.processCeremonyBlock(blockInfo);
+        // Only confirm after successful processing
+        this.systems.block.confirmBlockStart(blockInfo.type);
       } else if (blockInfo.type === BlockType.ROUND) {
         await this.processRoundBlock(blockInfo);
+        // Only confirm after successful processing
+        this.systems.block.confirmBlockStart(blockInfo.type);
       } else if (blockInfo.type === BlockType.RELAX) {
         await this.processRelaxBlock(blockInfo);
+        // Only confirm after successful processing
+        this.systems.block.confirmBlockStart(blockInfo.type);
       }
-      
-      // Confirm block started
-      this.systems.block.confirmBlockStart(blockInfo.type);
       
     } catch (error) {
       console.error('[MatchOrchestrator] Error processing block:', error);
@@ -246,6 +259,7 @@ class MatchOrchestrator {
    */
   async processCeremonyBlock(blockInfo) {
     const ceremonyType = blockInfo.context.ceremonyType;
+    console.log('[MatchOrchestrator] Processing ceremony block:', ceremonyType);
     
     // Create ceremony play
     const play = {
@@ -264,10 +278,17 @@ class MatchOrchestrator {
     matchState.startBlock(BlockType.CEREMONY, play);
     
     // Perform
+    console.log('[MatchOrchestrator] Starting ceremony performance...');
     await this.systems.performance.perform(play, context);
+    console.log('[MatchOrchestrator] Ceremony performance completed');
     
     // Complete block
+    console.log('[MatchOrchestrator] Completing ceremony block...');
     matchState.completeBlock();
+    console.log('[MatchOrchestrator] Ceremony block completed');
+    
+    // Debug: Check if we should continue
+    console.log('[MatchOrchestrator] Block completion should trigger BLOCK_COMPLETED event which calls processNextBlock');
   }
 
   /**
@@ -347,9 +368,9 @@ class MatchOrchestrator {
       currentRound: matchState.getCurrentRoundNumber(),
       totalRounds: matchState.getTotalRounds(),
       timeElapsed: matchState.getState().timeElapsed,
-      matchDuration: config.match?.estimatedDuration || 30,
+      matchDuration: config.match?.estimatedDuration || 1800, // 30 minutes in seconds
       
-      teamNames: config.teams?.teamNames || ['Team 1', 'Team 2'],
+      teamNames: config.teamConfig?.teamNames || config.teams?.teamNames || ['Team 1', 'Team 2'],
       
       isFirstRound: matchState.getCurrentRoundNumber() === 1,
       isLastRound: matchState.getCurrentRoundNumber() === matchState.getTotalRounds(),
@@ -371,6 +392,7 @@ class MatchOrchestrator {
   buildSelectionContext(blockInfo) {
     const baseContext = this.buildContext();
     const activePlayers = playerRegistry.getActivePlayers();
+    
     
     return {
       ...baseContext,
@@ -536,12 +558,9 @@ class MatchOrchestrator {
   attemptRecovery(error) {
     console.log('[MatchOrchestrator] Attempting recovery from:', error.message);
     
-    // Simple recovery: try next block
-    setTimeout(() => {
-      if (this.isRunning) {
-        this.processNextBlock();
-      }
-    }, 2000);
+    // For now, don't attempt automatic recovery to avoid pattern desync
+    // Instead, just log the error and let the user handle it
+    console.error('[MatchOrchestrator] Recovery failed - manual intervention required');
   }
 
   // ============================================
@@ -558,6 +577,23 @@ class MatchOrchestrator {
     this.systems.play.clearHistory();
     this.systems.block.reset();
     stateStore.clear();
+  }
+
+  /**
+   * Reset state but preserve players (for testing)
+   */
+  resetStateExceptPlayers() {
+    matchState.reset();
+    // Don't reset playerRegistry - keep existing players
+    this.systems.variety.clearHistory();
+    this.systems.play.clearHistory();
+    this.systems.block.reset();
+    // Only clear non-player related state
+    const players = stateStore.get(StateKeys.PLAYERS);
+    stateStore.clear();
+    if (players) {
+      stateStore.set(StateKeys.PLAYERS, players);
+    }
   }
 
   /**

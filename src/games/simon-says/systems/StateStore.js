@@ -395,7 +395,7 @@ class StateStore {
 /**
  * Standard state keys used in Simon Says
  */
-export const StateKeys = {
+const StateKeys = {
   // Match state
   MATCH_ID: 'match.id',
   MATCH_STATUS: 'match.status',

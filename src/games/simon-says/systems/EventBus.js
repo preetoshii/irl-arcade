@@ -85,22 +85,27 @@ class EventBus {
     this.recordEvent(event, data);
 
     // Debug logging
-    if (this.debugMode) {
-      console.log(`[EventBus] ${event}`, data);
+    if (this.debugMode || event === 'block:completed') {
+      console.log(`[EventBus] Emitting ${event}`, data);
+      console.log(`[EventBus] Handlers for ${event}:`, this.events.get(event)?.size || 0);
     }
 
     // Get handlers
     const handlers = this.events.get(event);
     if (!handlers || handlers.size === 0) {
-      if (this.debugMode) {
+      if (this.debugMode || event === 'block:completed') {
         console.warn(`[EventBus] No handlers for event: ${event}`);
       }
       return;
     }
 
     // Call all handlers
+    let handlerCount = 0;
     handlers.forEach(handler => {
       try {
+        if (event === 'block:completed') {
+          console.log(`[EventBus] Calling handler ${++handlerCount} for ${event}`);
+        }
         handler(data);
       } catch (error) {
         console.error(`[EventBus] Error in handler for ${event}:`, error);
@@ -223,7 +228,7 @@ class EventBus {
  * 
  * This Events object is like a contract between all systems, defining the vocabulary they use to communicate. By centralizing event names here, we avoid typos and make it easy to see all possible events at a glance. The naming convention (NOUN:VERB or NOUN:VERB:DETAIL) creates a natural hierarchy - you can listen to all player events with a pattern, or specific ones like PLAYER_ADDED. Each event represents a meaningful state change or action in the game, from the high-level (MATCH_STARTED) to the specific (SCRIPT_COMPLETED). New developers can quickly understand the game's flow by reading through these events.
  */
-export const Events = {
+const Events = {
   // Match lifecycle
   MATCH_INITIALIZED: 'match:initialized',
   MATCH_STARTED: 'match:started',
