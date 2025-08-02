@@ -1,11 +1,16 @@
 /**
  * Shared constants for Simon Says
- * Central location for all magic numbers and configuration values
+ * 
+ * Every game has its magic numbers - those specific values that make the experience feel just right. This file collects all of those numbers in one place, making them easy to find and adjust. When you're wondering "how long should a pause be?" or "what's the maximum number of consecutive rounds before players need a break?", you'll find the answers here. These aren't arbitrary values; each one has been considered for its impact on game flow and player experience.
+ * 
+ * The beauty of centralizing these constants is that it makes the game highly tunable. If playtesting reveals that 90-second rounds feel too long for duels, changing it here automatically updates every part of the system that creates duel rounds. It also makes the code more readable - instead of mysterious number 2000 scattered throughout, you see PAUSE_DURATIONS.MEDIUM, which clearly communicates intent. These constants shape everything from the micro-level (how long Simon pauses between words) to the macro-level (how an entire 30-minute match flows).
  */
 
 // ============================================
 // TIMING CONSTANTS (milliseconds)
 // ============================================
+
+// The pause system is Simon's way of creating theatrical timing. Just like a comedian knows exactly when to pause before a punchline, Simon uses these carefully calibrated pauses to build suspense, give players time to process instructions, and create natural speech rhythms. A MICRO pause (500ms) is barely noticeable, like a comma in speech. A MEDIUM pause (2 seconds) creates anticipation - long enough for players to lean in wondering what's next. An XLARGE pause (4 seconds) is reserved for maximum drama, like the moment before announcing the final challenge.
 
 export const PAUSE_DURATIONS = {
   MICRO: 500,    // Quick breath, comma-like
@@ -66,6 +71,8 @@ export const DIFFICULTY_SPEED_MULTIPLIERS = {
 // SELECTION WEIGHTS
 // ============================================
 
+// These weights determine how often each type of round appears in a match. Think of it like a recipe - if the total is 100, then DUEL at 30 means roughly 30% of rounds will be duels. The default weights create a balanced experience: enough duels for exciting head-to-head moments, plenty of free-for-all rounds to include everyone, team battles for collaboration, and just a sprinkle of asymmetric games to keep things interesting. These percentages were refined through extensive playtesting to find the sweet spot where no single game type becomes repetitive.
+
 // Default round type weights
 export const DEFAULT_ROUND_WEIGHTS = {
   DUEL: 30,
@@ -99,6 +106,8 @@ export const PLAYER_COUNT_ADJUSTMENTS = {
 // ============================================
 // VARIETY ENFORCEMENT
 // ============================================
+
+// The recency penalty system is how Simon keeps the game fresh. Without it, random selection might choose "Crab Walk Tag" five times in a row - technically fair, but boring. These penalties reduce the probability of recently-played activities appearing again. If something was JUST_PLAYED, its weight is multiplied by 0.2, making it 80% less likely to be chosen. This creates a natural variety where activities cycle through rather than cluster. By the time something hasn't been played for 4+ rounds, it's back to full probability, ready to surprise players again.
 
 // How much to penalize recent selections
 export const RECENCY_PENALTIES = {

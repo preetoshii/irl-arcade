@@ -1,6 +1,9 @@
 /**
  * Core type definitions for Simon Says
- * These interfaces define the shape of all major data structures
+ * 
+ * This file serves as the single source of truth for all data structures used throughout the Simon Says game. Think of it as the game's dictionary - whenever any part of the system needs to create or work with game data, it references these type definitions to ensure consistency. Every player, every game round, every tiny decision the game makes is structured according to these definitions.
+ * 
+ * The types defined here follow a hierarchical structure that mirrors the game itself. At the highest level, we have a Match, which contains Blocks (ceremonies, rounds, or relaxation periods), which contain Plays (the actual activities), which involve Players. This structure allows the game to maintain a clear understanding of what's happening at every moment, from the grand arc of an entire match down to the specific details of who's hopping on one foot while wearing a blindfold.
  */
 
 // ============================================
@@ -59,6 +62,10 @@ export const DifficultyCurve = {
 
 /**
  * Represents a player in the match
+ * 
+ * The Player type captures everything the game needs to know about each participant. Since Simon can only speak and never listen, we can't track actual performance or scores. Instead, we track what Simon CAN know: when players joined, which team they're on, and most importantly, when they were last selected for an activity. This selection tracking ensures fair rotation - if Alice hasn't been picked in 5 rounds while Bob has played 3 times, the system will boost Alice's chances of being selected next.
+ * 
+ * The stats object is particularly clever in its constraints. We track 'timesSelected' not 'timesPlayed' because Simon only knows who was chosen, not who actually participated. Similarly, 'recentPartners' helps prevent the same pairs from always competing - variety is the spice of life, after all.
  */
 export const PlayerType = {
   id: 'string',
@@ -83,6 +90,10 @@ export const PlayerType = {
 
 /**
  * A complete specification for a single activity
+ * 
+ * A Play is the atomic unit of fun in Simon Says - it represents one complete activity from start to finish. The magic of the system is how it builds these plays through cascading selections. First it picks a round type (maybe 'duel'), then a variant (perhaps 'tag'), then a movement style ('crabWalk'), and possibly adds a modifier ('blindfold'). By the time all selections are made, you have a fully specified activity: 'Blindfolded Crab Walk Tag Duel between Alice and Bob'.
+ * 
+ * The scripts object contains all the text Simon will speak, pre-assembled with dramatic pauses and player names filled in. The performanceHints help the text-to-speech system adjust its delivery - speaking faster for high-difficulty rounds, building suspense for the final round, and so on. Every play is a miniature theatrical performance, complete with introduction, rules explanation, dramatic countdown, and celebratory outro.
  */
 export const PlayType = {
   // Identifiers
@@ -181,6 +192,10 @@ export const MatchType = {
 
 /**
  * Context passed to selection systems
+ * 
+ * The SelectionContext is like a snapshot of everything the game knows at the moment it needs to choose the next activity. It's the information packet that gets passed through the selection pipeline, allowing each system to make informed decisions. When the PlaySelector needs to choose between tag and mirror match, it can check the recentPlays to ensure variety. When selecting players, it can see who's been waiting longest in the recentSelections data.
+ * 
+ * This context is rebuilt fresh for each selection, ensuring decisions are always based on the current state. It includes match progress (are we in the energetic beginning or the exhausting end?), player availability (who's still active?), and difficulty targets (should this be an easy warm-up or a challenging finale?). Every piece of information here shapes the final play selection, creating a dynamic experience that adapts to the game's flow while maintaining fairness and variety.
  */
 export const SelectionContextType = {
   // Match info

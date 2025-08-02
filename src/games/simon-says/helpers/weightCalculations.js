@@ -1,12 +1,17 @@
 /**
  * Weight calculation utilities for Simon Says
- * Pure functions for weight-related math
+ * 
+ * The weightCalculations helper module provides the mathematical foundation for all probability-based decisions in Simon Says. These pure functions handle the complex calculations needed for weighted random selection, ensuring that items with higher weights are more likely to be chosen while maintaining true randomness. Think of it as a lottery system where some tickets have better odds, but every ticket has a chance. This module abstracts away the mathematical complexity, providing clean interfaces that other systems can use without understanding the underlying probability theory.
+ * 
+ * The elegance of these utilities lies in their composability and predictability. Each function does one thing well, has no side effects, and always produces the same output for the same input. This makes them easy to test, debug, and reason about. Whether selecting a single player from weighted options, choosing multiple items without replacement, or balancing weights to ensure variety, these functions provide reliable, mathematically-sound solutions that form the backbone of Simon Says' fair and engaging selection systems.
  */
 
 /**
  * Calculate weighted random selection
- * @param {Array} items - Array of {item, weight} objects
- * @returns {Object} Selected item
+ * 
+ * This function is the workhorse of random selection throughout Simon Says, implementing a standard weighted random algorithm that's both efficient and fair. The algorithm works by imagining all weights laid end-to-end on a number line, then throwing a dart at a random position. Whichever weight segment the dart lands in determines the selection. Items with larger weights take up more space on the line, making them more likely to be hit. This creates natural probability distributions - an item with weight 60 is three times more likely to be selected than one with weight 20.
+ * 
+ * The implementation handles edge cases gracefully. Empty arrays return null rather than erroring. Single-item arrays skip randomization entirely. When all weights are zero (which might happen if variety enforcement has suppressed everything), it falls back to uniform random selection. This robustness ensures the game never crashes due to selection errors, maintaining smooth gameplay even in unusual circumstances. The algorithm's O(n) complexity is acceptable for Simon Says' small selection sets, though the binary search variant could be used for larger sets.
  */
 export function weightedRandom(items) {
   if (!items || items.length === 0) return null;
@@ -62,9 +67,10 @@ export function normalizeWeights(weights) {
 
 /**
  * Apply multiple weight modifiers
- * @param {number} baseWeight - Starting weight
- * @param {Array} modifiers - Array of modifier objects {factor, reason}
- * @returns {Object} Result with final weight and applied modifiers
+ * 
+ * Weight modification is how various systems influence selection probability without directly manipulating weights. Each modifier represents a multiplicative factor with an associated reason - for example, {factor: 0.5, reason: "recently_used"} halves the weight because an item was recently selected. Multiple modifiers stack multiplicatively, so an item that's both recently used (0.5x) and overused (0.7x) would have its weight multiplied by 0.35. This creates nuanced probability adjustments where multiple factors can influence selection without any single factor dominating.
+ * 
+ * The function returns a detailed result object that aids in debugging and transparency. It tracks the base weight, final weight, each applied modifier with its reason, and the total modifier effect. This audit trail is invaluable during development and testing - you can see exactly why a particular item's weight was adjusted. The minimum weight of 0.1 ensures nothing becomes impossible to select, preventing the system from painting itself into corners where all options are suppressed. This thoughtful design balances variety enforcement with gameplay reliability.
  */
 export function applyWeightModifiers(baseWeight, modifiers) {
   let finalWeight = baseWeight;
@@ -91,8 +97,10 @@ export function applyWeightModifiers(baseWeight, modifiers) {
 
 /**
  * Calculate entropy of weight distribution
- * @param {Object} weights - Weight distribution
- * @returns {number} Entropy value (0 = no variety, 1 = maximum variety)
+ * 
+ * Entropy, borrowed from information theory, measures the "randomness" or "variety" in a weight distribution. High entropy (approaching 1) means weights are evenly distributed - every option has similar probability, creating maximum variety. Low entropy (approaching 0) means weights are concentrated on few options - the same things keep getting selected. This metric helps the system understand whether players are experiencing sufficient variety or if intervention is needed. It's like measuring whether a shuffled playlist is truly random or keeps playing the same artists.
+ * 
+ * The calculation uses the Shannon entropy formula, normalized to a 0-1 range for easy interpretation. The logarithmic nature of entropy captures human perception well - the difference between 2 and 4 equally-likely options feels similar to the difference between 4 and 8 options. This mathematical sophistication enables features like "variety scores" in analytics or automatic weight balancing when entropy drops too low. By quantifying variety mathematically, the system can maintain engaging gameplay without manual tuning.
  */
 export function calculateWeightEntropy(weights) {
   const values = Object.values(weights);
@@ -189,9 +197,10 @@ export function calculateCumulativeWeights(weights) {
 
 /**
  * Binary search selection using cumulative weights
- * @param {Array} cumulative - Cumulative weight array
- * @param {number} random - Random value between 0 and total weight
- * @returns {number} Selected index
+ * 
+ * For large selection sets, this binary search approach improves selection from O(n) to O(log n) complexity. The algorithm requires pre-calculated cumulative weights - imagine weight segments stacked vertically rather than laid horizontally. To select, generate a random height and use binary search to find which segment contains that height. This is particularly efficient when the same weight distribution is used multiple times, as the cumulative array can be calculated once and reused. While Simon Says rarely needs this optimization (selection sets are typically small), it's available for future features that might involve hundreds of options.
+ * 
+ * The implementation follows the standard binary search pattern with one subtlety - when the random value exactly equals a cumulative boundary, it selects the upper segment. This ensures uniform distribution even at boundaries. The algorithm's elegance lies in transforming a linear search problem into a binary search problem through preprocessing. It's a beautiful example of trading a small amount of setup time (calculating cumulative weights) for potentially large runtime savings in repeated selections.
  */
 export function binarySearchSelection(cumulative, random) {
   let left = 0;

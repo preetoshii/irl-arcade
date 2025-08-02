@@ -1,6 +1,9 @@
 /**
  * Script Assembler for Simon Says
- * Builds performance scripts for plays
+ * 
+ * The ScriptAssembler is Simon's speechwriter, transforming dry play specifications into engaging, personality-filled performances. Every round needs a script - not just what to say, but how to say it, when to pause for effect, and how to build excitement. Like a talented improv performer working from loose notes, the ScriptAssembler takes the facts (who's playing, what game, what modifiers) and weaves them into a cohesive performance that feels spontaneous and fun. It's the difference between a robotic "Player 1 tag Player 2" and an exciting "Alice from the Red Rockets, step forward! And facing them... (pause for drama) Bob from the Blue Lightning!"
+ * 
+ * The system's sophistication comes from its template library and token replacement system. Templates provide variety - multiple ways to introduce duels, reveal variants, or celebrate endings. Tokens like {player1} and {team2} get replaced with actual names, making every announcement personal. The assembler also understands context, choosing dramatic countdowns for final rounds, silly encouragement for games with animal noises, and adjusting energy based on match progression. This creates a dynamic hosting experience where Simon feels like an aware, responsive game master rather than a pre-recorded announcement system.
  */
 
 import { configLoader } from '../systems';
@@ -207,9 +210,10 @@ class ScriptAssembler {
 
   /**
    * Assemble scripts for a play
-   * @param {Object} play - The play object
-   * @param {Object} context - Additional context
-   * @returns {Object} Assembled scripts
+   * 
+   * This is the main entry point where play specifications transform into performable scripts. The method acts as a router, directing different block types to specialized assemblers. Round blocks need complex multi-part scripts with introductions, player selections, variant reveals, rules, countdowns, and outros. Ceremony blocks need welcoming or celebratory scripts. Relax blocks need calming, instructional scripts. Each type has dramatically different needs, but all flow through this common entry point, ensuring consistent token processing and error handling.
+   * 
+   * The separation of concerns here is elegant - the ScriptAssembler doesn't need to understand game mechanics or selection logic. It receives a fully-specified play object and context, then focuses solely on creating an engaging performance. This allows the script templates to be modified, expanded, or even localized without touching any game logic. The returned scripts object contains all the text Simon will speak, with timing tokens embedded, ready for the PerformanceSystem to bring to life.
    */
   assembleScripts(play, context) {
     // Route to appropriate assembler
@@ -226,6 +230,10 @@ class ScriptAssembler {
 
   /**
    * Assemble scripts for a round play
+   * 
+   * Round script assembly is where the magic happens, taking a technical play specification and transforming it into a theatrical performance. The method follows a careful sequence that builds excitement: introduction (setting the stage), player selection (creating anticipation), variant reveal (the main event), modifiers (plot twists), rules (clarity), positioning (preparation), countdown (building tension), and finally the start. Each element is optional based on the play type - free-for-alls skip player selection since everyone plays, while simple variants might not need positioning instructions.
+   * 
+   * The intelligence in this method comes from how it adapts to context. The countdown style changes based on personality settings and round significance. During-play encouragement only appears for longer activities and matches the game's tone - silly for animal noise games, intense for late-match challenges. The ending switches from standard to celebratory for the final round. These contextual adaptations, combined with random template selection, ensure that even identical play specifications produce varied, appropriate scripts. It's like having a game host who reads the room and adjusts their energy accordingly.
    */
   assembleRoundScripts(play, context) {
     const scripts = {};
@@ -335,6 +343,10 @@ class ScriptAssembler {
 
   /**
    * Build player selection script
+   * 
+   * Player selection scripts are crucial for building anticipation and making players feel special. The method crafts different announcement styles based on the round type, understanding that a duel needs individual player focus while team activities need group energy. The scripts use carefully placed pause tokens - "[small]" creates a brief pause for processing, while "[medium]" builds dramatic tension. For duels, announcing players separately with a pause between creates a boxing-match atmosphere. For teams, the versus structure builds competitive energy.
+   * 
+   * Asymmetric games get special treatment because roles matter more than individuals. In infection, the infected player needs to be highlighted as special (and dangerous), while everyone else becomes "potential victims." The method understands these game-specific dynamics and crafts appropriate announcements. The use of tokens like {player1}, {team1} ensures names flow naturally into the script, while the specific phrasing ("step forward!", "you're up!") creates physical engagement, encouraging players to move and take their positions even before the game officially starts.
    */
   buildPlayerSelectScript(play, context) {
     const players = play.players;
@@ -361,6 +373,10 @@ class ScriptAssembler {
 
   /**
    * Build rules explanation script
+   * 
+   * Clear rule communication is essential for fair play, and this method assembles rules from multiple sources into a cohesive explanation. It starts with the base variant rule (what's the core game?), adds sub-variant modifications (how must you move?), and layers on modifier rules (what extra challenge exists?). The genius is in how these elements combine - each rule is stated clearly but concisely, with "[small]" pauses between elements to ensure comprehension without breaking flow. Players hear exactly what they need to know, nothing more.
+   * 
+   * The method maintains a library of rule phrasings that are action-oriented and easy to understand. Instead of "The objective is for player 1 to make physical contact with player 2," it says "{player1} must tag {player2}!" The exclamation points add energy while the direct phrasing leaves no ambiguity. Special attention is paid to modifiers that affect gameplay - if someone's blindfolded, teammates need to know they can shout directions. This proactive rule clarification prevents confusion and ensures fair, fun gameplay where everyone understands their role and constraints.
    */
   buildRulesScript(play, context) {
     const rules = [];
@@ -483,6 +499,10 @@ class ScriptAssembler {
 
   /**
    * Process tokens in scripts
+   * 
+   * Token processing is the final transformation that makes scripts personal and contextual. The method recursively processes all scripts, whether they're simple strings or arrays of strings, replacing placeholder tokens with actual values. This system allows templates to be written generically ("Welcome {player1} from {team1}!") while delivering personalized output ("Welcome Alice from the Red Rockets!"). The recursive processing handles nested structures elegantly - if during-play encouragement is an array of strings, each gets processed individually.
+   * 
+   * The power of this approach becomes clear when considering internationalization or customization. Templates can be stored with tokens, allowing the same system to work in any language or with custom naming schemes. Want to call teams by colors instead of numbers? Just change what {team1} resolves to. Want formal titles? Map {player1} to "Contestant Alice" instead of just "Alice". This separation of template structure from specific values makes the system incredibly flexible while maintaining clean, readable templates that focus on performance flow rather than data manipulation.
    */
   processTokens(scripts, play, context) {
     const tokens = this.buildTokenMap(play, context);
@@ -503,6 +523,10 @@ class ScriptAssembler {
 
   /**
    * Build token map from play and context
+   * 
+   * The token map is where all the specific details for a performance get collected into a single lookup table. This method excavates data from both the play object (who's playing, what variant) and the context (round number, match progress) to build a comprehensive map of replaceable values. The hierarchical extraction handles different player data structures elegantly - whether players are specified as objects with names and teams, arrays of IDs, or role-based mappings for asymmetric games, the method extracts appropriate tokens.
+   * 
+   * Special attention is paid to fallback values - if team names aren't provided, it defaults to "Team 1" and "Team 2" rather than leaving tokens unreplaced. The method also calculates derived values like duration in minutes (more natural than seconds) and includes generic tokens like "everyone" for free-for-all situations. This comprehensive token building ensures that scripts never have unreplaced tokens, creating smooth performances even when data is incomplete. The approach also future-proofs the system - new tokens can be added to the map without modifying any template processing logic.
    */
   buildTokenMap(play, context) {
     const tokens = {};

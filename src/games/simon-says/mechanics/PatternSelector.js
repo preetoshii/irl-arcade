@@ -1,6 +1,9 @@
 /**
  * Pattern Selector for Simon Says
- * Selects block sequencing patterns based on match configuration
+ * 
+ * The PatternSelector is like a music composer choosing the structure for a symphony. Just as a composer decides where to place the exciting crescendos, gentle interludes, and dramatic finales, the PatternSelector chooses the rhythm of an entire Simon Says match. It looks at how many rounds the players want and selects from pre-designed patterns that create satisfying gameplay arcs. A 5-round "quick match" might follow a "burst" pattern with intense action and one short break, while a 30-round marathon uses a "quarters" pattern like a sports match, with regular breaks to prevent exhaustion.
+ * 
+ * The brilliance of the pattern system is that it solves a complex problem elegantly. Without patterns, the game would need to make hundreds of individual decisions about when to insert breaks, how to pace difficulty, and when to build to climaxes. Instead, expert game designers have created these patterns through playtesting, encoding their knowledge about human attention spans, physical endurance, and group dynamics. The PatternSelector simply needs to pick the right pattern for the match length and player preferences, and the entire match flow is set - like choosing a recipe that guarantees a delicious meal.
  */
 
 import { configLoader, eventBus, Events } from '../systems';
@@ -34,6 +37,9 @@ class PatternSelector {
 
   /**
    * Select a pattern for the match
+   * 
+   * This method is called once at the start of each match to determine its entire structure. It's like choosing a roadmap for a journey - once selected, this pattern will guide when players get intense rounds, when they get breaks, and how the whole experience flows. The method is smart about handling edge cases: if someone wants 7 rounds but patterns only exist for 5 and 10, it will find the nearest pattern and adjust it. This flexibility ensures the game can accommodate any reasonable request while maintaining good pacing.
+   * 
    * @param {number} roundCount - Number of rounds in the match
    * @param {Object} preferences - Optional preferences for pattern selection
    * @returns {Object} Selected pattern
@@ -123,6 +129,8 @@ class PatternSelector {
 
   /**
    * Adjust pattern length to match target rounds
+   * 
+   * Sometimes players want a specific number of rounds that doesn't match any pre-designed pattern. This method performs pattern surgery, carefully adding or removing rounds while preserving the pattern's essential character. If a 10-round pattern needs to become 12 rounds, it doesn't just tack rounds onto the end - it distributes them thoughtfully to maintain the rhythm. Similarly, when shortening patterns, it removes rounds strategically to keep the experience balanced. It's like a tailor adjusting a suit - the proportions need to stay right even as the size changes.
    */
   adjustPatternLength(pattern, targetRounds) {
     const sequence = [...pattern.sequence];
@@ -204,6 +212,8 @@ class PatternSelector {
 
   /**
    * Check if pattern has consistent pacing
+   * 
+   * This method analyzes whether a pattern has regular intervals between elements, particularly useful for players who prefer predictable rhythms. It calculates the variance in spacing between rounds - low variance means consistent pacing (like a steady drumbeat), while high variance means irregular pacing (like jazz improvisation). Some players, especially those with attention or sensory processing differences, perform better with consistent pacing, so this check helps select patterns that match player needs. It's one of many subtle ways the system adapts to create inclusive experiences.
    */
   hasConsistentPacing(pattern) {
     const sequence = pattern.sequence;
@@ -253,6 +263,8 @@ class PatternSelector {
 
   /**
    * Validate pattern structure
+   * 
+   * Before using a pattern, this method performs a safety check to ensure it follows the fundamental rules of Simon Says match structure. Every match must start with an opening ceremony (to set the stage) and end with a closing ceremony (to provide closure). Patterns shouldn't end with a relax block - imagine finishing a movie with a commercial break! The method also enforces limits on consecutive rounds without breaks, protecting players from exhaustion. While the method logs warnings rather than throwing errors (to keep the game running), these validations help pattern designers create better experiences.
    */
   validatePattern(pattern) {
     const errors = [];

@@ -1,6 +1,9 @@
 /**
  * Performance System for Simon Says
- * Handles text-to-speech and theatrical script delivery
+ * 
+ * The PerformanceSystem is Simon's voice - literally. It transforms the carefully crafted scripts into spoken words, managing not just what is said but how it's said. Like a skilled actor, it knows when to pause for dramatic effect, when to speed up for excitement, and when to slow down for clarity. This system bridges the gap between data structures and human experience, turning a Play object full of technical details into an engaging performance that gets players moving and laughing.
+ * 
+ * What makes this system sophisticated is its attention to theatrical timing. Those [pause] tokens scattered throughout scripts aren't random - they're carefully orchestrated moments that create rhythm and build anticipation. A [medium] pause before revealing a modifier builds suspense. A [micro] pause between countdown numbers creates urgency. The system also adapts its delivery based on context: speaking faster during intense late-game rounds, building more suspense for final challenges, and adjusting voice parameters to match the energy needed. It's the difference between a robotic announcement and a engaging game show host.
  */
 
 import eventBus, { Events } from './EventBus';
@@ -35,6 +38,8 @@ class PerformanceSystem {
 
   /**
    * Initialize the performance system
+   * 
+   * Setting up the performance system involves negotiating with the browser's Web Speech API, which can be finicky. Different browsers and devices support different voices, so the system needs to be smart about voice selection. It tries to find an English-speaking male voice (matching Simon's character) but gracefully falls back to alternatives if needed. The initialization is asynchronous because voice loading isn't instant - the system might need to wait for voices to become available. This careful setup ensures that when the game starts, Simon is ready to speak clearly and consistently.
    */
   async initialize() {
     // Check for Web Speech API support
@@ -107,6 +112,8 @@ class PerformanceSystem {
 
   /**
    * Perform a complete play
+   * 
+   * This is where scripts become reality. The perform method takes a complete play specification and transforms it into a theatrical moment. It's like a miniature one-person show: introduction ("Time for a DUEL!"), character introduction ("Alice versus Bob!"), plot development ("This will be TAG!"), complications ("But you must CRAB WALK!"), and resolution ("GO!"). The method orchestrates all these elements with proper timing, making sure each piece lands with the right impact. If another play is requested while one is performing, it queues up rather than interrupting, ensuring smooth flow throughout the match.
    */
   async perform(play, context = {}) {
     if (this.isPerforming) {
@@ -370,6 +377,8 @@ class PerformanceSystem {
 
   /**
    * Process script tokens (variable replacement)
+   * 
+   * Script tokens are placeholders that get replaced with actual values right before speaking. When a script says "Welcome {player1} from {team1}!", this method replaces those tokens with "Welcome Alice from Red Rockets!" This system allows scripts to be written generically but delivered personally. It's crucial for making players feel involved - hearing your name called out by Simon creates a different level of engagement than generic announcements. The token system is also extensible, allowing new tokens to be added as the game grows.
    */
   processScriptTokens(text) {
     let processed = text;
@@ -388,6 +397,8 @@ class PerformanceSystem {
 
   /**
    * Extract pause segments from text
+   * 
+   * This method is like a script parser for a play, breaking text into speaking parts and stage directions. When it encounters text like "Ready... [small] Set... [small] GO!", it creates a sequence of speech segments and pause instructions. This parsing allows script writers to embed timing directly in the text rather than managing complex timing logic. The result is scripts that read naturally while encoding sophisticated performance instructions. It's the difference between Simon rushing through instructions and delivering them with the perfect rhythm that builds excitement.
    */
   extractPauseSegments(text) {
     const segments = [];
@@ -448,6 +459,8 @@ class PerformanceSystem {
 
   /**
    * Adjust performance style based on hints
+   * 
+   * Like a skilled performer reading the room, this method adjusts Simon's delivery based on the game context. High difficulty rounds get faster, more urgent delivery - creating pressure through pacing. Building suspense might lower the pitch slightly for drama. Near the end of a match, everything gets a bit more energetic to create a climactic feeling. These subtle adjustments happen automatically based on performance hints, ensuring Simon's delivery always matches the moment. It's the difference between a monotone robot and an adaptive host who knows how to work a crowd.
    */
   adjustPerformanceStyle(hints) {
     const baseSettings = { ...this.settings };

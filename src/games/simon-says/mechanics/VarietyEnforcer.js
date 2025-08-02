@@ -1,6 +1,9 @@
 /**
  * Variety Enforcer for Simon Says
- * Ensures diverse gameplay by adjusting selection weights
+ * 
+ * The VarietyEnforcer is like a wise game master who remembers everything and subtly guides the experience toward maximum fun. While players think they're experiencing random activities, the VarietyEnforcer works behind the scenes to prevent repetition, break patterns, and ensure everyone experiences the full richness of Simon Says. It's the difference between a shuffled playlist that somehow plays your favorite song three times in a row and one that thoughtfully varies genres, tempos, and artists. Without variety enforcement, randomness can paradoxically create monotony.
+ * 
+ * The system operates through three main mechanisms: recency penalties (recently used items become less likely), pattern breaking (preventing predictable sequences), and diversity bonuses (encouraging underused options). These adjustments happen through weight multiplication - an item with base weight 100 might get multiplied by 0.3 if it was just used, effectively making it 70% less likely. The beauty is that nothing is ever impossible, just less probable, maintaining the unpredictability that makes games fun while preventing the frustration of excessive repetition.
  */
 
 import { stateStore, StateKeys } from '../systems';
@@ -18,10 +21,10 @@ class VarietyEnforcer {
 
   /**
    * Adjust weight based on variety rules
-   * @param {string} itemId - Identifier for the item being selected
-   * @param {number} baseWeight - Original weight
-   * @param {Object} context - Selection context
-   * @returns {number} Adjusted weight
+   * 
+   * This method is the heart of variety enforcement, called every time the system needs to select something - whether it's a round type, variant, or modifier. It takes the base weight (from configuration) and applies multiple adjustment factors that can dramatically change selection probability. The recency factor might multiply by 0.1 if something was just used, while the diversity factor might multiply by 2.0 for never-used items. These factors stack multiplicatively, so an item that's both recent AND overused gets heavily suppressed.
+   * 
+   * The context parameter provides rich information about the current game state, allowing for sophisticated adjustments. For instance, certain patterns might be more acceptable late in a match, or variety rules might relax when there are very few players (limiting options). The minimum weight of 0.1 ensures nothing becomes impossible - even heavily penalized options retain a small chance of selection, preventing the system from painting itself into a corner where everything is suppressed.
    */
   adjustWeight(itemId, baseWeight, context) {
     let adjustedWeight = baseWeight;
@@ -51,6 +54,10 @@ class VarietyEnforcer {
 
   /**
    * Get recency factor based on how recently item was used
+   * 
+   * Recency is the most straightforward variety mechanism - things that just happened shouldn't happen again immediately. The method checks when an item was last used and applies a penalty that decreases over time. If something was used in the previous round, it might get a 0.1 multiplier (90% reduction). After 3 rounds, maybe 0.5 (50% reduction). After 5+ rounds, no penalty. This creates a natural "cooldown" period where recently-used items rest while others get their chance.
+   * 
+   * The implementation uses timestamps rather than round numbers for flexibility, estimating rounds based on time elapsed. This approach handles edge cases like paused games or variable round lengths gracefully. The getRecencyPenalty function (imported from constants) defines the exact penalty curve, which was tuned through playtesting to feel natural - not so aggressive that players notice the suppression, but strong enough to create variety.
    */
   getRecencyFactor(itemId) {
     const history = this.historyTracker.get(itemId);
@@ -89,6 +96,10 @@ class VarietyEnforcer {
 
   /**
    * Get diversity factor to encourage variety
+   * 
+   * While recency prevents immediate repetition, the diversity factor ensures long-term variety by tracking overall usage patterns. It compares how often each item has been used against the average, then boosts underused items and suppresses overused ones. Never-used items get a strong 2.0x multiplier, making them twice as likely to be selected. Items used half as much as average get 1.5x, while those used 50% more than average get 0.7x. This creates a gentle pressure toward equilibrium without forcing it.
+   * 
+   * The beauty of this approach is that it's self-correcting. If players genuinely prefer certain activities (maybe "tag" is just more fun than "mirror"), those will still appear more often because their base weights are higher. But the diversity factor prevents them from completely dominating. It's like a marketplace where popular items cost more, naturally encouraging people to try alternatives. Over a long match, this ensures players experience the full variety of what Simon Says offers.
    */
   getDiversityFactor(itemId, context) {
     // Check how much this item has been used compared to others
@@ -234,6 +245,14 @@ class VarietyEnforcer {
 // PATTERN DETECTOR
 // ============================================
 
+/**
+ * Pattern Detector for Simon Says
+ * 
+ * The PatternDetector is the most sophisticated component of variety enforcement, identifying and preventing predictable sequences that would make the game feel scripted. Humans are excellent pattern detectors - even truly random sequences can feel patterned if they happen to alternate (A-B-A-B) or repeat (A-A-A). The PatternDetector watches for these emergent patterns and adjusts weights to break them before players consciously notice. It's like having a DJ who notices they've been alternating between fast and slow songs and deliberately breaks the pattern to keep the audience engaged.
+ * 
+ * The system detects multiple pattern types: simple alternation (tag-mirror-tag-mirror), repetition (duel-duel-duel), and even complex cycles (A-B-C-A-B-C). When it detects that selecting an item would continue a pattern, that item's weight gets reduced by 70%. Conversely, selections that would break an existing pattern get a 50% boost. This creates an anti-pattern pressure that keeps the game feeling fresh and unpredictable, even though it's actually being carefully orchestrated to feel random.
+ */
+
 class PatternDetector {
   constructor() {
     this.recentSequence = []; // Recent item selections
@@ -243,6 +262,10 @@ class PatternDetector {
 
   /**
    * Check if selecting an item would create a pattern
+   * 
+   * This method is called before each selection to determine if choosing a particular item would create a noticeable pattern. It checks multiple pattern types in order of obviousness to players. First, it looks for alternating patterns (A-B-A-B) which humans notice quickly. Then repetition (A-A-A), which feels monotonous. Finally, it checks for longer cyclic patterns that might emerge. The method is conservative - it only flags patterns that are clear enough that players would likely notice them.
+   * 
+   * The context parameter could be used for pattern rules that vary by game state. For instance, alternating between two team types might be acceptable (even desirable) early in a match to ensure both teams are engaged, but should be avoided later. The method returns a simple boolean, but the pattern detection logic could be extended to return pattern strength, allowing for graduated responses rather than binary decisions.
    */
   wouldCreatePattern(itemId, context) {
     if (this.recentSequence.length < 2) return false;
@@ -304,6 +327,10 @@ class PatternDetector {
 
   /**
    * Detect if sequence would create a cycle
+   * 
+   * Cycle detection is the most complex part of pattern detection, looking for repeating sequences of any length. A cycle of length 2 is just alternation (A-B-A-B), but cycles can be longer: A-B-C-A-B-C (length 3) or even A-B-C-D-A-B-C-D (length 4). The method tests different cycle lengths, checking if adding the proposed item would complete a cycle. It's computationally efficient, only checking cycle lengths up to half the sequence length (longer cycles can't repeat enough to be noticed).
+   * 
+   * The elegance of this approach is that it catches patterns humans would notice without being explicitly programmed for each one. Whether players are experiencing tag-mirror-balance-tag-mirror-balance or red-blue-green-red-blue-green, the same algorithm detects the cycle. This generality makes the system robust to new content - add a new round type or variant, and pattern detection automatically prevents it from creating repetitive sequences.
    */
   detectCycle(sequence, nextItem) {
     // Try different cycle lengths

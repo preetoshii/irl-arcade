@@ -1,6 +1,9 @@
 /**
  * Play Selector for Simon Says
- * Core selection algorithm for choosing plays
+ * 
+ * The PlaySelector is the heart of Simon Says' decision-making engine. Every round, it faces a complex question: given the current players, their history, the match progress, and configuration preferences, what activity should happen next? It's like being a DJ at a party - you need to read the room, remember what songs you've already played, balance different musical tastes, and keep the energy flowing. The PlaySelector orchestrates this dance of decisions through a sophisticated multi-step process that considers dozens of factors while appearing effortless to players.
+ * 
+ * The brilliance of the PlaySelector lies in how it balances competing concerns. It needs to be fair (giving everyone a chance to be selected), varied (not repeating the same activities), appropriate (matching activities to player count and preferences), and progressive (adjusting difficulty over time). All these considerations happen in milliseconds, resulting in a selection that feels both random and intentional. Players notice when selection is done well - everyone gets picked, activities feel fresh, and the game maintains its momentum without anyone feeling left out or overwhelmed.
  */
 
 import { eventBus, Events, configLoader, stateStore, StateKeys } from '../systems';
@@ -30,8 +33,10 @@ class PlaySelector {
 
   /**
    * Select a play for a round block
-   * @param {Object} context - Selection context
-   * @returns {Object} Selected play
+   * 
+   * This method is called for every round in a match, making it one of the most frequently executed pieces of logic in the game. It follows a carefully designed cascade of decisions, each building on the previous. First, it selects the round type (duel, team, free-for-all, or asymmetric) based on player count and weighted preferences. Then it drills down to variant (like tag vs mirror for duels), sub-variant (movement style like crab-walking), and potentially a modifier (silly additions like animal noises). Finally, it selects which players participate and calculates timing. Each decision influences the next - selecting 'elimination' might favor choosing players who haven't been eliminated recently, while 'relay' needs balanced teams.
+   * 
+   * The context parameter carries crucial information that shapes every decision. It knows the current round number, total rounds, target difficulty, player list, and match progress. This rich context allows the selector to make intelligent choices - ramping up difficulty in later rounds, avoiding recently-used plays, ensuring fair player rotation, and respecting accessibility settings. The assembled play object contains everything needed for downstream systems to create scripts and perform the activity, from player assignments to performance hints that shape how Simon delivers the content.
    */
   async selectPlay(context) {
     eventBus.emit(Events.BLOCK_SELECTION_STARTED, { context });
@@ -98,6 +103,10 @@ class PlaySelector {
 
   /**
    * Select round type based on weights and context
+   * 
+   * Round type selection sets the foundation for everything that follows. Each type creates fundamentally different dynamics: duels create intense one-on-one competition, team activities build collaboration, free-for-alls generate chaotic fun, and asymmetric games create unique role-based experiences. The method starts with base weights from configuration, then applies multiple adjustments. Player count is crucial - you can't have a meaningful duel with 30 players or a good free-for-all with 3. The player count adjustment multipliers ensure activities match the group size.
+   * 
+   * The variety enforcer integration is particularly clever here. If players have been doing lots of duels recently, their weight gets reduced, encouraging the system to try something different. This happens transparently - the base configuration might heavily favor duels, but the variety enforcer ensures players experience the full range of activities over time. The weighted random selection at the end means common activities appear more often while still maintaining unpredictability. Players might notice patterns ("we tend to do more free-for-alls") but can't predict what's next.
    */
   selectRoundType(context) {
     const config = configLoader.get('roundTypes', {});
@@ -270,6 +279,10 @@ class PlaySelector {
 
   /**
    * Select players for a duel
+   * 
+   * Duel player selection showcases the sophistication of fair rotation. It starts by getting selection weights from the player registry - players who haven't been picked recently get higher weights, implementing a "fairness boost" that prevents anyone from being left out. The first player is selected using these weights, then the second player selection gets even more nuanced. Recent partners get their weights reduced (preventing the same pairs from always competing), while players from different teams get a slight boost (encouraging cross-team competition). These subtle adjustments create natural variety without feeling forced.
+   * 
+   * The method handles edge cases gracefully - if there aren't enough players for a duel, it throws a clear error rather than proceeding with broken state. The returned player objects include names and team information, not just IDs, because downstream systems need this for script generation ("Alice from the Red Team versus Bob from the Blue Team!"). This careful data structuring prevents repeated lookups and ensures all necessary information flows smoothly through the system.
    */
   selectDuelPlayers(activePlayers, context) {
     // Get selection weights from player registry
@@ -352,6 +365,10 @@ class PlaySelector {
 
   /**
    * Select players for asymmetric games
+   * 
+   * Asymmetric games are where Simon Says gets really creative. Unlike balanced activities where everyone has the same role, asymmetric games create unique dynamics through role differentiation. In 'infection', one player starts as infected trying to tag others. In 'protector', one player defends a small group from hunters. The distributions object defines these role blueprints - some roles need exact counts while others take "the rest" of the players. This flexibility allows asymmetric games to work with varying player counts while maintaining their core dynamic.
+   * 
+   * The selection process is careful about role assignment. Special roles (like the infected or protector) are chosen first using selection weights to ensure fair rotation - everyone gets a chance to be the special role over time. The method then removes selected players from the remaining pool before assigning the next role, preventing double-assignment. The 'rest' keyword elegantly handles variable player counts - if you have 15 players and need 1 hunter, the other 14 automatically become prey without complex calculations. This design makes asymmetric games scalable from small to large groups while preserving gameplay balance.
    */
   selectAsymmetricPlayers(activePlayers, variant, context) {
     // Different variants have different player distributions
@@ -410,6 +427,10 @@ class PlaySelector {
 
   /**
    * Calculate play difficulty
+   * 
+   * Difficulty calculation is more art than science, combining multiple factors into a single 1-5 score that downstream systems use for various adjustments. The method starts with a base difficulty of 1, then adds contributions from each component. Variants contribute 0-2 points based on their complexity - 'tag' is simple (0 points) while 'capture the flag' requires more coordination (2 points). Sub-variants like crab-walking or hopping add their own difficulty. Modifiers layer on additional challenge. The final sum is capped at 5 to prevent overwhelming combinations.
+   * 
+   * This calculated difficulty serves multiple purposes throughout the system. The performance system uses it to adjust Simon's speaking pace - higher difficulty gets slightly faster delivery to add pressure. The script system might add more encouragement for difficult activities. The UI could display difficulty stars. Most importantly, this standardized difficulty score helps ensure the game follows its intended difficulty curve - if the match is configured for "gentle" difficulty, the system avoids selecting combinations that would sum to 4 or 5, keeping the experience accessible while still providing variety.
    */
   calculateDifficulty(variant, subVariant, modifier) {
     let difficulty = 1; // Base
@@ -525,6 +546,10 @@ class PlaySelector {
 
   /**
    * Weighted random selection
+   * 
+   * This utility method implements the randomness that makes Simon Says unpredictable while respecting the careful weighting systems throughout the game. The algorithm is elegantly simple: sum all weights to get a total, generate a random number within that range, then iterate through options subtracting each weight until the random number goes negative. This creates probability distributions where options with higher weights are more likely to be selected, but nothing is guaranteed. An option with 90% weight will usually be picked, but that 10% chance of something else keeps players guessing.
+   * 
+   * The method includes important edge case handling. If all weights are zero (which might happen if the variety enforcer has suppressed everything), it falls back to equal random selection. Single-option arrays return immediately without randomization. The method works with any objects that have a 'weight' property, making it reusable throughout the codebase. This standardized approach to weighted selection ensures consistent probability behavior whether selecting round types, players, or modifiers, creating a cohesive experience where randomness feels fair rather than arbitrary.
    */
   weightedRandom(options) {
     if (options.length === 0) return null;

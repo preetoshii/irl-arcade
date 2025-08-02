@@ -1,6 +1,9 @@
 /**
  * Match state management for Simon Says
- * Tracks the current match progress and history
+ * 
+ * The MatchState is like the game's memory and consciousness rolled into one. It knows everything about the current match - how long it's been running, which round we're on, what pattern of blocks we're following, and what has happened so far. Think of it as the stage manager for a theater production, keeping track of which scene we're in, what props have been used, and what comes next. Every other system can ask MatchState questions like "what round is this?" or "how long since the last break?" and get authoritative answers.
+ * 
+ * What makes MatchState special is its careful adherence to what Simon can actually know. While it tracks that a "Tag Duel between Alice and Bob" happened in round 3, it doesn't know who won - that's information Simon can never receive. It operates like a meticulous narrator who can only describe what was announced, not what actually occurred. This constraint shapes the entire design, creating a state system that tracks intentions and announcements rather than outcomes and scores.
  */
 
 import { MatchStatus, BlockType } from './types';
@@ -59,6 +62,8 @@ class MatchState {
 
   /**
    * Initialize a new match
+   * 
+   * Starting a new match is like setting up a new game board. This method takes the player's preferences (how many rounds, what difficulty) and creates a fresh match state. It generates a unique ID using the current date and time, which helps identify this specific match if we need to recover from a crash or analyze logs later. The configuration passed in becomes the unchangeable rules for this match - once set, the number of rounds and difficulty curve remain constant, ensuring a consistent experience from start to finish.
    */
   initializeMatch(config) {
     const matchId = this.generateMatchId();
@@ -217,6 +222,8 @@ class MatchState {
 
   /**
    * Get current round number (counting only round blocks)
+   * 
+   * This seemingly simple method solves an important problem: when Simon announces "Round 5!", players expect that to mean the 5th gameplay round, not the 5th block including ceremonies and breaks. This method counts only the actual ROUND blocks, skipping over ceremony and relax blocks. So even if we're technically on the 8th block of the pattern (after an opening ceremony, 3 rounds, a relax block, and 2 more rounds), this returns 5 - the number players actually care about.
    */
   getCurrentRoundNumber() {
     return this.match.blockHistory.filter(b => b.type === BlockType.ROUND).length + 
@@ -268,6 +275,8 @@ class MatchState {
 
   /**
    * Get current difficulty target based on progression
+   * 
+   * Difficulty progression is one of the subtle ways Simon Says creates a satisfying arc. This method looks at how far through the match we are and returns the target difficulty for the current round. If the player chose a 'gentle' curve, early rounds might target difficulty 1-2, slowly building to 4-5 by the end. A 'roller coaster' curve might jump between easy and hard, keeping players on their toes. The beauty is that this is just a target - the actual selection system will try to find activities near this difficulty, creating a natural flow from warm-up to challenge to triumphant finale.
    */
   getCurrentDifficultyTarget() {
     const roundNumber = this.getCurrentRoundNumber();
@@ -308,6 +317,8 @@ class MatchState {
 
   /**
    * Create a checkpoint of current state
+   * 
+   * Checkpoints are the game's insurance policy against the unexpected. Every 60 seconds, this method creates a complete snapshot of the match state - like a save game file. If someone's phone dies, the app crashes, or any other catastrophe strikes, we can restore from the last checkpoint and continue almost seamlessly. The checkpoint includes everything needed to reconstruct the exact game state: what pattern we're following, which block we're on, how much time has elapsed, and the complete history of what's been played so far. It's a safety net that players never see but would definitely miss if it wasn't there.
    */
   createCheckpoint() {
     const checkpoint = {

@@ -1,6 +1,9 @@
 /**
  * Event Bus for Simon Says
- * Provides pub/sub communication between systems
+ * 
+ * The EventBus is the nervous system of Simon Says, allowing different parts of the game to communicate without directly knowing about each other. Imagine a bustling restaurant where the kitchen doesn't need to know every waiter by name - they just call out "Order ready for table 5!" and the right waiter responds. Similarly, when the PlaySelector chooses an activity, it doesn't need to know about the PerformanceSystem - it just emits a PLAY_SELECTED event, and interested systems respond accordingly. This decoupling is crucial for maintainability; we can add new systems or modify existing ones without untangling a web of direct dependencies.
+ * 
+ * The event-driven architecture solves a fundamental challenge in complex systems: how do you coordinate multiple components without creating spaghetti code? By using events, each system can focus on its own responsibilities while staying informed about relevant changes elsewhere. When a player joins mid-game, the PlayerRegistry emits PLAYER_ADDED, which might trigger the MatchOrchestrator to queue a welcome announcement, the StateStore to update its records, and the UI to refresh the player list - all without these systems directly calling each other. It's like a well-choreographed dance where everyone knows their cues.
  */
 
 // ============================================
@@ -17,6 +20,9 @@ class EventBus {
 
   /**
    * Subscribe to an event
+   * 
+   * This method is how systems express interest in things happening elsewhere in the game. When a system calls on('match:started', myHandler), it's like saying "Hey, let me know when a match starts - I have some setup to do." The beauty of returning an unsubscribe function is that systems can easily clean up after themselves. If a component is being destroyed or no longer needs updates, it just calls the returned function to stop receiving events. This prevents memory leaks and ensures systems only process events they actually care about.
+   * 
    * @param {string} event - Event name
    * @param {Function} handler - Event handler function
    * @returns {Function} Unsubscribe function
@@ -68,6 +74,9 @@ class EventBus {
 
   /**
    * Emit an event
+   * 
+   * When something noteworthy happens in the game, emit() broadcasts that information to all interested parties. It's like making an announcement over the PA system - you don't need to know who's listening, you just share the information. The method includes error handling so that if one listener crashes, it doesn't bring down the whole system. This robustness is crucial in a real-world application where various edge cases might cause individual handlers to fail. The optional debug mode logs all events, which is invaluable for understanding the flow of a complex match or diagnosing issues.
+   * 
    * @param {string} event - Event name
    * @param {any} data - Event data
    */
@@ -211,6 +220,8 @@ class EventBus {
 
 /**
  * Standard events used in Simon Says
+ * 
+ * This Events object is like a contract between all systems, defining the vocabulary they use to communicate. By centralizing event names here, we avoid typos and make it easy to see all possible events at a glance. The naming convention (NOUN:VERB or NOUN:VERB:DETAIL) creates a natural hierarchy - you can listen to all player events with a pattern, or specific ones like PLAYER_ADDED. Each event represents a meaningful state change or action in the game, from the high-level (MATCH_STARTED) to the specific (SCRIPT_COMPLETED). New developers can quickly understand the game's flow by reading through these events.
  */
 export const Events = {
   // Match lifecycle

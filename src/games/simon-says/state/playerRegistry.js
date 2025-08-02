@@ -1,6 +1,9 @@
 /**
  * Player registry for Simon Says
- * Manages active players and tracks selection history
+ * 
+ * The PlayerRegistry is the game's social coordinator, keeping track of who's playing, who's on which team, and ensuring everyone gets their time in the spotlight. Imagine a thoughtful party host with a perfect memory - they remember who's been dancing all night and who's been sitting on the sidelines, and they make sure to invite the wallflowers onto the dance floor. That's exactly what PlayerRegistry does for Simon Says, maintaining fairness and inclusion through careful tracking of player participation.
+ * 
+ * The registry solves several critical problems that arise in real-world group play. Players might join late ("Sorry, parking was terrible!"), take breaks ("I need water!"), or leave early ("My ride is here!"). Through it all, the registry maintains an accurate picture of who's available to play. More importantly, it tracks selection history to ensure fair rotation. If Taylor has been selected for three activities while Jordan hasn't played once, the system will boost Jordan's selection weight, creating natural fairness without Simon having to explicitly manage it.
  */
 
 import { PlayerStatus, createPlayer } from './types';
@@ -30,6 +33,8 @@ class PlayerRegistry {
 
   /**
    * Add a new player
+   * 
+   * When someone new joins the game, this method welcomes them into the system. It creates a complete player profile with a unique ID, assigns them to their chosen team, and initializes their stats at zero. The method also prevents duplicate names - if there's already an Alice playing, the new player needs to be Alice2 or use a nickname. This isn't just about data management; it's about creating clear identity in a game where Simon needs to call out specific players by name. Once added, the player immediately becomes eligible for selection in the next round.
    */
   addPlayer(name, teamId) {
     // Check if player with same name exists
@@ -101,6 +106,8 @@ class PlayerRegistry {
 
   /**
    * Record that a player was selected for an activity
+   * 
+   * This method is called every time Simon announces a player for an activity, creating a detailed history of participation. It's important to understand that this tracks SELECTION, not actual participation - if Simon says "Alice and Bob, time for a duel!" but Alice is tying her shoe and sits out, the system still records her as selected. This limitation exists because Simon can only speak, not observe. The method updates multiple statistics: how many times selected, which round they last played, what activities they've done recently, and who they've partnered with. This rich history enables the variety system to make intelligent decisions like avoiding the same partnerships repeatedly or ensuring someone who hasn't been selected recently gets priority.
    */
   recordSelection(playerId, roundNumber, activity, partners = []) {
     const player = this.players.get(playerId);
@@ -204,6 +211,8 @@ class PlayerRegistry {
 
   /**
    * Get selection weights for fair player selection
+   * 
+   * This is where the magic of fair selection happens. The method calculates a weight (probability modifier) for each player based on how long they've been waiting. It's like a virtual queue where waiting longer steadily increases your chances of being picked. A player who hasn't been selected in 5 rounds might have their weight doubled, while someone who just played has normal weight. The algorithm creates organic fairness - over the course of a match, everyone gets roughly equal opportunities without Simon having to explicitly take turns. It's particularly elegant because it works with any number of players and adapts naturally as people join or leave.
    */
   getSelectionWeights(eligiblePlayerIds = null) {
     const weights = new Map();
@@ -266,6 +275,8 @@ class PlayerRegistry {
 
   /**
    * Balance teams by moving players
+   * 
+   * Sometimes teams end up lopsided - maybe several players from one team had to leave early, or latecomers all joined the same team. This method analyzes team sizes and suggests rebalancing moves. If Red team has 8 players while Blue team has only 3, it might suggest moving 2-3 players to Blue team. The suggestions are just that - suggestions. Since Simon can't enforce team changes or even know if players actually switch, this simply provides the information for human players to self-organize. It's a gentle nudge toward fairness that respects player autonomy while promoting balanced gameplay.
    */
   suggestTeamBalance() {
     const teams = this.getActiveTeams();

@@ -1,6 +1,9 @@
 /**
  * Block Selector for Simon Says
- * Determines the next block type based on the pattern
+ * 
+ * The BlockSelector is like a GPS navigator for the match, always knowing exactly where we are and what comes next. Once a pattern is chosen (like "opening → round → round → relax → round → closing"), the BlockSelector's job is to follow that pattern faithfully, keeping track of our position and providing the next destination. It's a simple but crucial responsibility - imagine if Simon forgot whether we were on round 3 or 4, or accidentally did two opening ceremonies! This system prevents such chaos by maintaining a clear sense of position and progression.
+ * 
+ * What makes BlockSelector particularly clever is the context it provides with each block. It doesn't just say "next is a round block" - it provides rich information like "this is round 3 of 10, it's been 2 rounds since the last break, and we're in the middle third of the match." This context flows downstream to help other systems make intelligent decisions. The play selector might choose a gentler activity knowing it's been a while since a break, or ramp up difficulty knowing we're approaching the finale. It's like having a wise narrator who not only knows what chapter we're on but understands the story's arc.
  */
 
 import { eventBus, Events, stateStore, StateKeys } from '../systems';
@@ -39,6 +42,9 @@ class BlockSelector {
 
   /**
    * Get the next block type in the sequence
+   * 
+   * This method is called repeatedly throughout a match, each time providing the blueprint for what happens next. It's like turning pages in a choose-your-own-adventure book, except the adventure was chosen at the start. The method returns rich block information including not just the type (round, relax, ceremony) but also contextual data about where this block fits in the overall match. When it reaches the end of the pattern, it emits a PATTERN_COMPLETE event, signaling that the match's predetermined structure has been fully executed - time for the closing ceremony and then celebration!
+   * 
    * @returns {Object} Next block information
    */
   getNextBlock() {
@@ -103,6 +109,8 @@ class BlockSelector {
 
   /**
    * Get context information for a block
+   * 
+   * Context is everything in Simon Says. This method enriches a simple block type with layers of meaningful information that help downstream systems make smart decisions. For a round block, it calculates what round number this is (players care about "round 5", not "block 7"), how many rounds since the last break, and whether we're early, middle, or late in the match. For ceremony blocks, it determines if this is the opening or closing. This contextual awareness allows the game to adapt its personality - Simon might be more encouraging in early rounds, more intense in the middle, and celebratory near the end.
    */
   getBlockContext(blockType, index) {
     const context = {
@@ -186,6 +194,8 @@ class BlockSelector {
 
   /**
    * Get rounds since last relax block
+   * 
+   * This method answers a crucial question for pacing: how hard have the players been working? By counting backwards from the current position to find the last relax block, it provides a fatigue indicator. If this returns 4 or 5, players have been going hard and the next round might need to be gentler. If it returns 1, they just had a break and can handle something intense. This information flows into play selection, helping create natural ebbs and flows in energy rather than relentless intensity that exhausts players.
    */
   getRoundsSinceRelax(index) {
     let roundCount = 0;
@@ -265,6 +275,8 @@ class BlockSelector {
 
   /**
    * Get pattern progress information
+   * 
+   * This method provides a comprehensive progress report, like a fitness tracker for the match. It tells you not just where you are (block 7 of 15) but interprets that information in multiple ways: percentage complete, rounds finished versus rounds remaining, and what type of block is currently active. This information serves multiple purposes - the UI can show a progress bar, the difficulty system can ramp up as the match progresses, and the script system can add comments like "halfway there!" or "final round!" It transforms raw positional data into meaningful game context.
    */
   getProgress() {
     return {
@@ -318,6 +330,8 @@ class BlockSelector {
 
   /**
    * Get visualization of pattern progress
+   * 
+   * This delightful method creates a visual representation of the entire match pattern using emojis, making it easy to see the match structure at a glance. Ceremonies get theater masks, rounds get game controllers, and relax blocks get zen faces. The current position is highlighted with brackets, while completed blocks get checkmarks. It's particularly useful for debugging and monitoring - a developer or game master can instantly see where the match is and what's coming next. The visualization might look like: ✓🎭 ✓🎮 ✓🎮 [😌] 🎮 🎮 🎬, telling a complete story in a single line.
    */
   getPatternVisualization() {
     if (!this.pattern) return '';

@@ -1,6 +1,9 @@
 /**
  * Configuration Loader for Simon Says
- * Manages loading, merging, and accessing configuration
+ * 
+ * The ConfigLoader is like a master chef who takes ingredients from multiple sources and combines them into the perfect recipe for each match. It handles the complex task of merging player preferences ("I want a gentle 10-round game focused on silly activities") with developer settings (detailed weight tables, timing configurations, and game rules) to create a cohesive configuration that shapes every aspect of the game. This separation allows players to have simple, meaningful choices while developers retain fine-grained control over the experience.
+ * 
+ * The real magic happens in how ConfigLoader resolves potential conflicts and fills in gaps. When a player selects "intense difficulty," ConfigLoader knows to reduce pause durations, increase the probability of challenging activities, and adjust the difficulty curve accordingly. It's like having an experienced game master who understands that "intense" doesn't just mean harder activities - it means faster pacing, less rest time, and a more demanding overall experience. All these interconnected adjustments happen automatically, creating a cohesive experience from simple player choices.
  */
 
 import eventBus, { Events } from './EventBus';
@@ -14,6 +17,8 @@ import {
 // ============================================
 // DEFAULT CONFIGURATIONS
 // ============================================
+
+// The default player configuration represents the most common, accessible game settings. These defaults were carefully chosen through playtesting to create an experience that's fun for first-time players while still being engaging for veterans. A 10-round match hits the sweet spot of substantial gameplay without overstaying its welcome, while 'moderate' difficulty provides challenge without frustration. The 'competitive' and 'silly' focus creates a playful rivalry that keeps things light-hearted.
 
 const DEFAULT_PLAYER_CONFIG = {
   matchLength: 10,                    // Number of rounds
@@ -31,6 +36,8 @@ const DEFAULT_PLAYER_CONFIG = {
     audioAccommodations: false       // Visual cues for audio instructions
   }
 };
+
+// The developer configuration is where the deep complexity lives. While players see simple choices, developers can tune every aspect of the game through these detailed settings. The block sequencing patterns define the rhythm of different match lengths - notice how shorter matches have fewer but more intense relax blocks, while longer matches space them out more evenly. The round type weights and variants create the variety players experience, while timing configurations ensure everything feels smooth and natural.
 
 const DEFAULT_DEVELOPER_CONFIG = {
   // Match flow
@@ -231,6 +238,8 @@ class ConfigLoader {
 
   /**
    * Load player configuration
+   * 
+   * When players make their selections in the UI, this method takes those choices and integrates them with the defaults. The deep merge ensures that players only need to specify what they want to change - if they just set matchLength to 15, all other defaults remain intact. This approach prevents errors from missing configuration values while allowing complete customization when desired. The method also emits an event so other systems know the configuration has changed, enabling them to adjust their behavior accordingly.
    */
   loadPlayerConfig(config) {
     this.playerConfig = this.deepMerge(DEFAULT_PLAYER_CONFIG, config);
@@ -286,6 +295,8 @@ class ConfigLoader {
 
   /**
    * Apply player preferences to merged config
+   * 
+   * This is where simple player choices transform into comprehensive game adjustments. When a player selects 'gentle' difficulty, this method doesn't just set a flag - it adjusts maximum difficulty from 5 to 3, increases pause multipliers to give more thinking time, and reduces modifier probability to keep things manageable. Similarly, choosing a 'collaborative' focus doesn't just change some text; it increases team activity weights and reduces competitive duel weights. These cascading changes ensure that player choices meaningfully shape the entire experience, not just superficial elements.
    */
   applyPlayerPreferences() {
     const player = this.playerConfig;
@@ -362,6 +373,8 @@ class ConfigLoader {
 
   /**
    * Get configuration value by path
+   * 
+   * The dot-notation path system makes accessing nested configuration values elegant and safe. Instead of writing config.timing?.multipliers?.difficulty?.easy with defensive checks at each level, systems can simply request 'timing.multipliers.difficulty.easy' and trust they'll get a value or the specified default. This seemingly small feature dramatically reduces boilerplate code throughout the system and makes configuration access consistent and predictable. It's particularly valuable during development when configuration structures might change - the path-based access continues working even if intermediate objects are restructured.
    */
   get(path, defaultValue = null) {
     if (!this.mergedConfig) {

@@ -1,6 +1,9 @@
 /**
  * Match Orchestrator for Simon Says
- * Coordinates all game mechanics and manages match flow
+ * 
+ * The MatchOrchestrator is the maestro conducting the entire Simon Says symphony. While individual systems handle their specific responsibilities - pattern selection, play selection, script assembly, performance - the orchestrator ensures they all work in harmony. It's like the director of a live show who coordinates lighting, sound, actors, and stage changes to create a seamless experience. The orchestrator understands the big picture: how a match flows from opening ceremony through multiple rounds to closing celebration, handling everything from normal progression to error recovery.
+ * 
+ * The power of the orchestrator pattern lies in its separation of concerns. Each system can focus on doing one thing well, while the orchestrator handles their integration and the overall flow. When a round completes, the orchestrator knows to check the pattern for the next block, engage the appropriate selector, assemble scripts, and trigger performance. If a player leaves mid-game, the orchestrator evaluates whether the match can continue. If an error occurs, it attempts recovery. This centralized coordination creates resilience - individual systems can fail and recover without bringing down the entire experience, much like how a good director handles unexpected stage mishaps without the audience noticing.
  */
 
 import { 
@@ -39,6 +42,10 @@ class MatchOrchestrator {
 
   /**
    * Initialize the orchestrator and all systems
+   * 
+   * Initialization is like a pre-show systems check where every component is tested and prepared for the performance ahead. The method follows a careful sequence: first initializing individual systems (making sure each instrument is tuned), then wiring dependencies (ensuring the musicians can hear each other), subscribing to events (setting up communication channels), and finally loading configuration (getting the sheet music ready). This methodical approach ensures that when a match starts, every system is ready to play its part without any surprises.
+   * 
+   * The error handling here is particularly important. If any system fails to initialize, the entire initialization fails, preventing partially-configured matches that might behave unpredictably. The event emission at the end signals to any monitoring systems that the orchestrator is ready, creating a clear initialization lifecycle. This robustness is essential for a system that might run for extended periods, handling multiple matches without restart.
    */
   async initialize() {
     console.log('[MatchOrchestrator] Initializing...');
@@ -190,6 +197,10 @@ class MatchOrchestrator {
 
   /**
    * Process the next block in the sequence
+   * 
+   * This method is the heartbeat of match progression, called after each block completes to determine what happens next. It's like turning the page in a choose-your-own-adventure book, except the adventure was chosen at the start (the pattern). The method retrieves the next block type from the pattern, then routes to specialized processors for each type. The beauty is in how it handles the unknown - if the block selector returns null, it knows the pattern is complete. If an error occurs, it attempts recovery rather than crashing. This resilience keeps matches flowing smoothly even when individual operations fail.
+   * 
+   * The try-catch structure with recovery attempts showcases production-ready thinking. Games are live experiences where stopping for errors ruins the fun. Instead of failing hard, the orchestrator logs the error, emits an event for monitoring, and attempts recovery. The recovery might be as simple as skipping to the next block or waiting a moment before retrying. This approach acknowledges that in live entertainment, the show must go on. Players might notice a slight hiccup, but the game continues, maintaining engagement and fun.
    */
   async processNextBlock() {
     if (!this.isRunning) {
@@ -261,6 +272,10 @@ class MatchOrchestrator {
 
   /**
    * Process a round block
+   * 
+   * Round processing is where all the systems come together to create a moment of gameplay. The method orchestrates a complex dance: building context (understanding the current situation), selecting a play (choosing what game to play), recording variety (preventing repetition), updating player tracking (ensuring fairness), assembling scripts (creating the performance), and finally performing (bringing it to life). Each step depends on the previous ones, yet the method presents a clean, linear flow that's easy to understand and debug.
+   * 
+   * The variety recording is particularly clever - it records both the round type and variant separately, allowing the variety enforcer to prevent repetition at multiple levels. You won't get tag-tag-tag, but you also won't get duel-mirror, duel-tag, duel-balance (too many duels). The player tracking increment ensures everyone's "rounds since selected" counter increases, making unselected players more likely to be chosen next time. These subtle mechanisms create fairness and variety without players noticing the system's invisible hand guiding their experience.
    */
   async processRoundBlock(blockInfo) {
     // Build selection context
@@ -348,6 +363,10 @@ class MatchOrchestrator {
 
   /**
    * Build selection context for play selection
+   * 
+   * Context building is like providing a detailed briefing to a decision-maker. The play selector needs to know everything relevant to make a good choice: who's playing, what's happened recently, where we are in the match, what difficulty we're targeting, and how long it's been since a break. This method aggregates information from multiple sources - match state, player registry, configuration, and the current block - into a comprehensive context object. It's the informational foundation that enables intelligent play selection.
+   * 
+   * The spread operator usage here elegantly combines multiple context sources, with later sources overriding earlier ones. This allows block-specific context to override general match context when needed. The method also calculates derived values like team rosters and difficulty targets, preventing each system from having to understand these calculations. By centralizing context building, the orchestrator ensures all systems work from the same understanding of the current game state, preventing inconsistencies that could arise from systems calculating their own context.
    */
   buildSelectionContext(blockInfo) {
     const baseContext = this.buildContext();
@@ -543,6 +562,10 @@ class MatchOrchestrator {
 
   /**
    * Create state checkpoint
+   * 
+   * Checkpointing is like taking a snapshot of a live performance - capturing every detail needed to resume exactly where things left off. This method creates a comprehensive backup of the entire game state across all systems. The orchestrator's own state (is it running? what match?), the match progress, player information, variety history, and configuration all get captured. This isn't just about crash recovery - it enables features like "save and quit" or even replaying matches from specific points.
+   * 
+   * The checkpoint structure reveals the system's architecture beautifully. Each major system has an export method that serializes its internal state, and the orchestrator simply collects these exports. This design means systems can evolve their internal state independently as long as they maintain compatible export/import interfaces. The checkpoint could be serialized to JSON and saved to disk, sent to a server, or kept in memory for quick recovery. It's a powerful pattern that adds resilience and flexibility to the entire game system.
    */
   createCheckpoint() {
     return {

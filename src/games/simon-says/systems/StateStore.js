@@ -1,6 +1,9 @@
 /**
  * State Store for Simon Says
- * Centralized state management with transactions and subscriptions
+ * 
+ * The StateStore acts as the single source of truth for all mutable data in Simon Says. Rather than having state scattered across dozens of components, everything lives here in one organized, observable location. Think of it as the game's filing cabinet where every piece of information has a proper place and can be retrieved instantly. But unlike a static filing cabinet, this one notifies interested parties whenever something changes. When the current round updates, any system that cares about round numbers immediately knows about it without having to constantly check.
+ * 
+ * What makes StateStore particularly powerful is its transaction system. In a complex game, multiple related values often need to change together - for example, when a round completes, we might need to update the current round number, add to the history, update player stats, and change the match status. Transactions ensure these changes happen atomically - either all succeed or all fail, preventing the game from ever being in an inconsistent state. It's like making sure all the dominoes fall in the right order, or none fall at all.
  */
 
 import eventBus, { Events } from './EventBus';
@@ -22,6 +25,9 @@ class StateStore {
 
   /**
    * Get a value from the store
+   * 
+   * Retrieving values from the store is straightforward but includes thoughtful defaults. When you ask for a value that doesn't exist, instead of returning undefined (which often causes errors), it returns the defaultValue you specify. This defensive programming prevents many common bugs. For example, getting the 'currentRound' before a match starts returns 0 instead of undefined, allowing mathematical operations to work correctly without extra null checks throughout the codebase.
+   * 
    * @param {string} key - State key
    * @param {any} defaultValue - Default value if key doesn't exist
    * @returns {any} The state value
@@ -154,6 +160,9 @@ class StateStore {
 
   /**
    * Execute a transaction (batch updates)
+   * 
+   * Transactions are one of StateStore's most elegant features. When you need to make multiple related changes, wrapping them in a transaction ensures consistency and performance. During a transaction, individual set() calls don't trigger notifications - instead, all changes are batched and notifications are sent once at the end. This prevents systems from seeing partial updates and reacting to incomplete state. If any error occurs during the transaction, all changes are rolled back, ensuring the game never gets stuck in a broken state. It's like having an undo button that automatically triggers if something goes wrong.
+   * 
    * @param {Function} callback - Transaction callback
    */
   transaction(callback) {
@@ -209,6 +218,9 @@ class StateStore {
 
   /**
    * Subscribe to state changes
+   * 
+   * The subscription system turns StateStore from a passive data holder into an active participant in the game's flow. Systems can watch specific keys they care about, receiving notifications only when those values change. This targeted approach is much more efficient than having every system check every change. A system watching 'currentRound' doesn't care when player names update, and vice versa. The ability to watch multiple keys with one subscription is particularly useful for related data - a UI component might watch both 'match.status' and 'match.currentRound' to update its display appropriately.
+   * 
    * @param {string|string[]} keys - Key or array of keys to watch
    * @param {Function} callback - Callback function
    * @returns {Function} Unsubscribe function
