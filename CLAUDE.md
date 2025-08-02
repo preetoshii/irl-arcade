@@ -91,6 +91,7 @@ export default {
 - Every line has a proper home
 - Touch-friendly UI with large tap targets
 - Responsive but optimized for mobile viewport
+- **Component organization** - Each component in its own folder with CSS module
 
 ## Design Language
 **Hyper-minimal 8-bit style** - The app should disappear so people focus on playing together:

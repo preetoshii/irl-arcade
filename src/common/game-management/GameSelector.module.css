@@ -1,11 +1,11 @@
 /**
- * GameSelector.module.css - Styles for the carousel game selector
+ * GameSelector.module.css - Retro-minimal carousel styles
  * 
- * Features:
- * - Full viewport carousel with horizontal scroll
- * - CSS scroll-snap for native feel
- * - Fixed overlay controls
- * - Smooth transitions
+ * Design principles:
+ * - Duo-toned: white UI on colored backgrounds
+ * - No gradients, shadows, or opacity
+ * - Solid colors only
+ * - Mobile-first sizing
  */
 
 /* Container takes full viewport */
@@ -16,7 +16,7 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: #0a0a0a;
+  background: #000;
 }
 
 /* Horizontal scrolling carousel */
@@ -30,7 +30,6 @@
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  transition: opacity 0.3s ease;
 }
 
 .carousel::-webkit-scrollbar {
@@ -49,7 +48,7 @@
   position: relative;
 }
 
-/* Slide content styling */
+/* Slide content - full size */
 .slideContent {
   width: 100%;
   height: 100%;
@@ -61,31 +60,34 @@
 /* Placeholder for non-mounted games */
 .slidePlaceholder {
   text-align: center;
-  opacity: 0.3;
+  color: #666;
+  font-family: monospace;
 }
 
 .slidePlaceholder h2 {
-  font-size: 3rem;
+  font-size: 2rem;
   margin-bottom: 1rem;
-  color: #646cff;
+  text-transform: uppercase;
 }
 
 /* Loading state */
 .slideLoading {
   text-align: center;
+  color: #fff;
+  font-family: monospace;
 }
 
 .slideLoading h2 {
-  font-size: 3rem;
+  font-size: 2rem;
   margin-bottom: 1rem;
-  color: #646cff;
-  animation: pulse 1.5s ease-in-out infinite;
+  text-transform: uppercase;
 }
 
 /* Error state */
 .slideError {
   text-align: center;
-  color: #ff6464;
+  color: #ff0000;
+  font-family: monospace;
 }
 
 /* Fixed overlay controls */
@@ -102,87 +104,71 @@
   justify-content: flex-end;
   align-items: center;
   padding: 2rem;
+  padding-bottom: 3rem;
 }
 
-/* Game description overlay */
+/* Game description - retro box */
 .gameDescriptionOverlay {
   pointer-events: none;
-  max-width: 600px;
+  max-width: 90%;
   text-align: center;
   margin-bottom: 2rem;
-  padding: 1.5rem 2rem;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.5rem;
+  background: #000;
+  border: 3px solid #fff;
+  font-family: monospace;
 }
 
 .gameDescriptionOverlay p {
   margin: 0;
-  font-size: 1.3rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 300;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-/* START GAME button */
+/* START GAME button - retro style */
 .startButton {
   pointer-events: auto;
-  padding: 1.5rem 4rem;
-  font-size: 1.8rem;
+  padding: 1.2rem 3rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
-  color: #0a0a0a;
+  font-family: monospace;
+  background: #00ff00;
+  color: #000;
   border: none;
-  border-radius: 50px;
   cursor: pointer;
-  box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
   text-transform: uppercase;
   letter-spacing: 2px;
-  margin-bottom: 3rem;
-  transition: all 0.3s ease;
-}
-
-.startButton:hover {
-  box-shadow: 0 12px 40px rgba(0, 255, 136, 0.5);
-  transform: translateY(-2px);
+  margin-bottom: 2rem;
+  transition: transform 0.1s;
 }
 
 .startButton:active {
-  transform: translateY(0);
+  transform: scale(0.95);
 }
 
-/* Slide indicators */
+/* Slide indicators - simple dots */
 .indicators {
   pointer-events: auto;
   display: flex;
-  gap: 0.8rem;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 30px;
-  backdrop-filter: blur(10px);
+  gap: 0.5rem;
+  padding: 0.5rem;
 }
 
 .indicator {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid #fff;
+  background: transparent;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: none;
   padding: 0;
 }
 
-.indicator:hover {
-  background: rgba(255, 255, 255, 0.5);
-  transform: scale(1.2);
-}
-
 .indicatorActive {
-  width: 24px;
-  border-radius: 4px;
-  background: #646cff;
+  background: #fff;
 }
 
 /* No games message */
@@ -193,61 +179,45 @@
   height: 100vh;
   text-align: center;
   font-size: 1.2rem;
-  opacity: 0.6;
-  font-style: italic;
+  color: #fff;
+  font-family: monospace;
+  text-transform: uppercase;
 }
 
-/* Animations */
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
-}
-
-/* Responsive adjustments */
+/* Mobile optimizations */
 @media (max-width: 768px) {
   .gameDescriptionOverlay {
-    margin-bottom: 1.5rem;
-    padding: 1rem 1.5rem;
-    max-width: 90%;
-  }
-  
-  .gameDescriptionOverlay p {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
+    padding: 0.8rem 1.2rem;
   }
   
   .startButton {
-    padding: 1.2rem 3rem;
-    font-size: 1.4rem;
+    padding: 1rem 2.5rem;
+    font-size: 1.3rem;
   }
   
-  .indicators {
-    bottom: 1rem;
+  .overlayControls {
+    padding: 1.5rem;
+    padding-bottom: 2rem;
   }
 }
 
-/* Game title screen styles (for games to use) */
+/* Ensure full viewport usage */
+* {
+  box-sizing: border-box;
+}
+
+/* Game title screen base (games should use this) */
 .gameTitleScreen {
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 2rem;
-}
-
-.gameTitleScreen h1 {
-  font-size: 5rem;
-  margin-bottom: 2rem;
-  text-transform: uppercase;
-  letter-spacing: 4px;
-}
-
-.gameTitleScreen p {
-  font-size: 1.5rem;
-  opacity: 0.8;
-  max-width: 600px;
-  line-height: 1.6;
+  position: absolute;
+  top: 0;
+  left: 0;
 }

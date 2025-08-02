@@ -48,14 +48,7 @@ function CarouselSlide({ game, isActive, mode = 'title' }) {
   }
 
   return (
-    <motion.div 
-      className={styles.slideContent}
-      animate={{
-        scale: isActive ? 1 : 0.9,
-        opacity: isActive ? 1 : 0.5
-      }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className={styles.slideContent}>
       <Suspense fallback={
         <div className={styles.slideLoading}>
           <h2>{game.name}</h2>
@@ -70,7 +63,7 @@ function CarouselSlide({ game, isActive, mode = 'title' }) {
           />
         )}
       </Suspense>
-    </motion.div>
+    </div>
   );
 }
 

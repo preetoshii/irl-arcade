@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import GameTitleScreen from '../../common/components/GameTitleScreen';
 import styles from './SimonSays.module.css';
 
 function SimonSaysGame({ mode = 'title', isActive, onExit }) {
@@ -25,51 +26,12 @@ function SimonSaysGame({ mode = 'title', isActive, onExit }) {
 
   // Title screen content
   const renderTitleScreen = () => (
-    <motion.div 
-      className={`${styles.titleScreen} gameTitleScreen`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: isActive ? 1 : 0.3 }}
-      transition={{ duration: 0.5 }}
-    >
-      <motion.h1
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
-        className={styles.gameTitle}
-      >
-        SIMON SAYS
-      </motion.h1>
-      
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className={styles.gameIcon}
-      >
-        🎯
-      </motion.div>
-      
-      <motion.p
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className={styles.gameDescription}
-      >
-        Follow Simon's commands! But only when Simon says so...
-        Teams compete in hilarious physical challenges.
-      </motion.p>
-
-      <motion.div
-        className={styles.gameStats}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-      >
-        <span>2-100 Players</span>
-        <span>•</span>
-        <span>Team Game</span>
-      </motion.div>
-    </motion.div>
+    <GameTitleScreen
+      title="SIMON SAYS"
+      icon="🎯"
+      stats={['2-100 Players', '•', 'Team Game']}
+      backgroundColor="#ff0000"
+    />
   );
 
   // Game screen content
@@ -88,13 +50,9 @@ function SimonSaysGame({ mode = 'title', isActive, onExit }) {
       <div className={styles.gameContent}>
         {gameState === 'playing' ? (
           <>
-            <motion.div
-              className={styles.commandDisplay}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-            >
+            <div className={styles.commandDisplay}>
               <h3>{currentCommand || "Get ready..."}</h3>
-            </motion.div>
+            </div>
             
             <p className={styles.instructions}>
               Game implementation coming soon!

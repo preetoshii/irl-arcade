@@ -1,0 +1,72 @@
+/**
+ * GameTitleScreen.module.css - Shared title screen styles
+ * 
+ * Retro-minimal design that all games use for consistency
+ */
+
+.titleScreen {
+  color: #fff;
+  font-family: monospace;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.gameTitle {
+  font-size: 3rem;
+  margin: 0 0 2rem 0;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  line-height: 1;
+}
+
+.gameIcon {
+  font-size: 4rem;
+  margin: 2rem 0 3rem;
+}
+
+.gameStats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.gameStats span {
+  padding: 0.5rem 1rem;
+  border: 2px solid #fff;
+  white-space: nowrap;
+}
+
+/* Add bullet separator styling */
+.gameStats span:nth-child(even) {
+  border: none;
+  padding: 0.5rem 0;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .gameTitle {
+    font-size: 2.5rem;
+  }
+  
+  .gameIcon {
+    font-size: 3rem;
+  }
+  
+  .gameStats {
+    font-size: 0.8rem;
+  }
+}
