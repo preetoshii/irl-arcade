@@ -20,7 +20,6 @@ function GameSelector({ onGameSelect }) {
   const [isStarting, setIsStarting] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const [activeGameInfo, setActiveGameInfo] = useState(null);
-  const [voicesLoaded, setVoicesLoaded] = useState(false);
   const carouselRef = useRef(null);
   const isJumpingRef = useRef(false);
   const scrollTimeoutRef = useRef(null);
@@ -49,13 +48,6 @@ function GameSelector({ onGameSelect }) {
   };
 
   const orderedGames = getGameOrder();
-  
-  // Ensure we always have active game info
-  useEffect(() => {
-    if (!activeGameInfo && games.length > 0) {
-      setActiveGameInfo(games[currentIndex]);
-    }
-  }, [currentIndex, games, activeGameInfo]);
 
   // Handle scroll to detect current game
   useEffect(() => {
@@ -114,50 +106,15 @@ function GameSelector({ onGameSelect }) {
     carousel.scrollLeft = centerIndex * carousel.offsetWidth;
   }, [games.length]);
 
-  // Load voices when component mounts
+
+
+  // Simple TTS - just speak the game name when it changes
   useEffect(() => {
-    if ('speechSynthesis' in window) {
-      // Function to check if voices are loaded
-      const loadVoices = () => {
-        const voices = window.speechSynthesis.getVoices();
-        if (voices.length > 0) {
-          setVoicesLoaded(true);
-        }
-      };
-
-      // Try to load voices immediately
-      loadVoices();
-
-      // Chrome loads voices asynchronously
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-
-      return () => {
-        window.speechSynthesis.onvoiceschanged = null;
-      };
-    }
-  }, []);
-
-
-  // Play jingle and speak game name when active game changes
-  useEffect(() => {
-    if (!activeGameInfo || isScrolling || !voicesLoaded) return;
-
-    // Speak the game name using default male voice
-    if ('speechSynthesis' in window) {
-      // Store game info in a variable to prevent closure issues
-      const gameToSpeak = activeGameInfo.name;
-      
-      // Use a microtask to avoid React batching issues
-      Promise.resolve().then(() => {
-        const utterance = new SpeechSynthesisUtterance(gameToSpeak);
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-        utterance.volume = 0.8;
-        window.speechSynthesis.speak(utterance);
-      });
-    }
-
-  }, [activeGameInfo, isScrolling, voicesLoaded]);
+    if (!activeGameInfo) return;
+    
+    const utterance = new SpeechSynthesisUtterance(activeGameInfo.name);
+    window.speechSynthesis.speak(utterance);
+  }, [activeGameInfo]);
 
   const handleStartGame = () => {
     setIsStarting(true);
@@ -221,7 +178,7 @@ function GameSelector({ onGameSelect }) {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <p>{activeGameInfo?.description || games[currentIndex]?.description}</p>
+                  <p>{activeGameInfo?.description}</p>
                 </motion.div>
               )}
             </AnimatePresence>
