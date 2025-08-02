@@ -28,9 +28,6 @@ function App() {
     
     // Make it available globally for console experiments
     window.Game.speak = speak
-    
-    // Test it's working
-    speak("Welcome to IRL Arcade!")
   }, [])
 
   const handleGameSelect = (gameId) => {

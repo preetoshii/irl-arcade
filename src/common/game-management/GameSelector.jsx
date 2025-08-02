@@ -20,11 +20,10 @@ function GameSelector({ onGameSelect }) {
   const [isStarting, setIsStarting] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const [activeGameInfo, setActiveGameInfo] = useState(null);
+  const [voicesLoaded, setVoicesLoaded] = useState(false);
   const carouselRef = useRef(null);
-  const audioRef = useRef(null);
   const isJumpingRef = useRef(false);
   const scrollTimeoutRef = useRef(null);
-  const [voicesLoaded, setVoicesLoaded] = useState(false);
 
   // Get the order of games with current game in the middle
   const getGameOrder = () => {
@@ -50,6 +49,13 @@ function GameSelector({ onGameSelect }) {
   };
 
   const orderedGames = getGameOrder();
+  
+  // Ensure we always have active game info
+  useEffect(() => {
+    if (!activeGameInfo && games.length > 0) {
+      setActiveGameInfo(games[currentIndex]);
+    }
+  }, [currentIndex, games, activeGameInfo]);
 
   // Handle scroll to detect current game
   useEffect(() => {
@@ -108,102 +114,54 @@ function GameSelector({ onGameSelect }) {
     carousel.scrollLeft = centerIndex * carousel.offsetWidth;
   }, [games.length]);
 
-  // Load voices when available
+  // Load voices when component mounts
   useEffect(() => {
-    const loadVoices = () => {
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
-        setVoicesLoaded(true);
-      }
-    };
-
-    // Load voices
-    loadVoices();
-    
-    // Chrome loads voices asynchronously
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
+      // Function to check if voices are loaded
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          setVoicesLoaded(true);
+        }
+      };
 
-    return () => {
-      if ('speechSynthesis' in window) {
+      // Try to load voices immediately
+      loadVoices();
+
+      // Chrome loads voices asynchronously
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+
+      return () => {
         window.speechSynthesis.onvoiceschanged = null;
-      }
-    };
+      };
+    }
   }, []);
+
 
   // Play jingle and speak game name when active game changes
   useEffect(() => {
-    if (!activeGameInfo) return;
+    if (!activeGameInfo || isScrolling || !voicesLoaded) return;
 
-    // Speak the game name using the game's voice
-    if (activeGameInfo.voice && 'speechSynthesis' in window && voicesLoaded) {
-      // Cancel any ongoing speech
-      window.speechSynthesis.cancel();
+    // Speak the game name using default male voice
+    if ('speechSynthesis' in window) {
+      // Store game info in a variable to prevent closure issues
+      const gameToSpeak = activeGameInfo.name;
       
-      // Create utterance with game's voice
-      const utterance = new SpeechSynthesisUtterance(activeGameInfo.name);
-      
-      // Try to find and set the specified voice
-      const voices = window.speechSynthesis.getVoices();
-      
-      // Debug: log available voices
-      console.log('Available voices:', voices.map(v => v.name));
-      console.log('Looking for voice:', activeGameInfo.voice);
-      
-      const gameVoice = voices.find(voice => 
-        voice.name.toLowerCase().includes(activeGameInfo.voice.toLowerCase())
-      );
-      
-      if (gameVoice) {
-        utterance.voice = gameVoice;
-        console.log('Found voice:', gameVoice.name);
-      } else {
-        console.log('Voice not found, using default');
-        // Try to use different voices based on index for variety
-        const voiceIndex = games.findIndex(g => g.id === activeGameInfo.id);
-        if (voices.length > voiceIndex) {
-          utterance.voice = voices[voiceIndex % voices.length];
-        }
-      }
-      
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-      utterance.volume = 0.8;
-      
-      // Speak after a short delay to avoid overlapping with scroll
-      setTimeout(() => {
+      // Use a microtask to avoid React batching issues
+      Promise.resolve().then(() => {
+        const utterance = new SpeechSynthesisUtterance(gameToSpeak);
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        utterance.volume = 0.8;
         window.speechSynthesis.speak(utterance);
-      }, 100);
-    }
-
-    // Play jingle if available
-    if (activeGameInfo.titleJingle && audioRef.current) {
-      // Fade out previous audio
-      if (!audioRef.current.paused) {
-        audioRef.current.volume = 0;
-        audioRef.current.pause();
-      }
-
-      // Play new jingle
-      audioRef.current.src = activeGameInfo.titleJingle;
-      audioRef.current.volume = 0.5;
-      audioRef.current.play().catch(e => {
-        // User hasn't interacted yet, that's okay
-        console.log('Audio autoplay prevented:', e);
       });
     }
-  }, [activeGameInfo]);
+
+  }, [activeGameInfo, isScrolling, voicesLoaded]);
 
   const handleStartGame = () => {
     setIsStarting(true);
     
-    // Fade out audio
-    if (audioRef.current && !audioRef.current.paused) {
-      audioRef.current.volume = 0;
-      audioRef.current.pause();
-    }
-
     // Small delay for transition
     setTimeout(() => {
       onGameSelect(activeGameInfo.id);
@@ -220,9 +178,6 @@ function GameSelector({ onGameSelect }) {
 
   return (
     <div className={styles.selectorContainer}>
-      {/* Hidden audio element for jingles */}
-      <audio ref={audioRef} loop />
-
       {/* Carousel */}
       <div 
         ref={carouselRef}
@@ -266,7 +221,7 @@ function GameSelector({ onGameSelect }) {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <p>{activeGameInfo?.description}</p>
+                  <p>{activeGameInfo?.description || games[currentIndex]?.description}</p>
                 </motion.div>
               )}
             </AnimatePresence>

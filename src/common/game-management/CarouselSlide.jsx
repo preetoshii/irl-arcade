@@ -7,11 +7,11 @@
  * - Managing active state for audio/visual feedback
  */
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, memo } from 'react';
 import { motion } from 'framer-motion';
 import styles from './GameSelector.module.css';
 
-function CarouselSlide({ game, isActive, mode = 'title', onActiveChange }) {
+const CarouselSlide = memo(function CarouselSlide({ game, isActive, mode = 'title', onActiveChange }) {
   const [GameComponent, setGameComponent] = useState(null);
   const [loadError, setLoadError] = useState(null);
   
@@ -72,6 +72,13 @@ function CarouselSlide({ game, isActive, mode = 'title', onActiveChange }) {
       </Suspense>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent unnecessary re-renders
+  return (
+    prevProps.game.id === nextProps.game.id &&
+    prevProps.isActive === nextProps.isActive &&
+    prevProps.mode === nextProps.mode
+  );
+});
 
 export default CarouselSlide;

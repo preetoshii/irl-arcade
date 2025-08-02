@@ -15,13 +15,6 @@ export default {
   // Systems this game requires
   requires: ['audio', 'timer'],
   
-  // 8-bit jingle that plays when this game is selected
-  // TODO: Add actual audio file
-  titleJingle: '/sounds/simon-says-intro.mp3',
-  
-  // TTS voice for this game (will announce game name and be used in-game)
-  voice: 'Alex', // Deep, authoritative voice for Simon
-  
   // Dynamic import for the game component
   component: () => import('./index.jsx')
 };
