@@ -1,0 +1,75 @@
+/**
+ * GameSelector.module.css - Styles for the game selection menu
+ */
+
+.gameSelector {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.title {
+  text-align: center;
+  font-size: 3rem;
+  margin-bottom: 3rem;
+  background: linear-gradient(135deg, #646cff 0%, #535bf2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gamesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.gameCard {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.gameCard:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #646cff;
+  box-shadow: 0 8px 32px rgba(100, 108, 255, 0.2);
+}
+
+.gameCard h2 {
+  margin: 0 0 1rem 0;
+  color: #646cff;
+  font-size: 1.8rem;
+}
+
+.gameCard p {
+  margin: 0 0 1.5rem 0;
+  opacity: 0.8;
+  line-height: 1.6;
+}
+
+.gameInfo {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+.gameInfo span {
+  background: rgba(100, 108, 255, 0.2);
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  border: 1px solid rgba(100, 108, 255, 0.3);
+}
+
+.noGames {
+  text-align: center;
+  opacity: 0.6;
+  font-style: italic;
+  margin-top: 4rem;
+}

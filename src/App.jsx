@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import GameSelector from './common/game-management/GameSelector'
+import GameLoader from './common/game-management/GameLoader'
 import './App.css'
+
+// Import and register all games
+import './games'
 
 // Global Game object for console experimentation
 window.Game = {
@@ -9,6 +14,8 @@ window.Game = {
 }
 
 function App() {
+  const [selectedGame, setSelectedGame] = useState(null);
+
   // Initialize speech synthesis
   useEffect(() => {
     // Simple speak function ready to use
@@ -23,19 +30,33 @@ function App() {
     window.Game.speak = speak
     
     // Test it's working
-    speak("Audio system ready!")
+    speak("Welcome to the Audio Game Lab!")
   }, [])
+
+  const handleGameSelect = (gameId) => {
+    console.log(`Selected game: ${gameId}`);
+    setSelectedGame(gameId);
+  };
+
+  const handleExitGame = () => {
+    setSelectedGame(null);
+  };
 
   return (
     <div className="App">
-      <motion.h1 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        Audio Game Lab
-      </motion.h1>
-      
-      <p>Open console and try: <code>Game.speak("Hello world")</code></p>
+      {!selectedGame ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <GameSelector onGameSelect={handleGameSelect} />
+        </motion.div>
+      ) : (
+        <GameLoader 
+          gameId={selectedGame} 
+          onExit={handleExitGame}
+        />
+      )}
     </div>
   )
 }
