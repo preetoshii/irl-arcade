@@ -113,6 +113,38 @@ function GameSelector({ onGameSelect }) {
     if (!activeGameInfo) return;
     
     const utterance = new SpeechSynthesisUtterance(activeGameInfo.name);
+    
+    // Use American male voice - filter out female voices
+    const voices = window.speechSynthesis.getVoices();
+    console.log('Available voices:', voices.map(v => v.name));
+    
+    const americanMaleVoice = voices.find(voice => {
+      const name = voice.name.toLowerCase();
+      const lang = voice.lang.toLowerCase();
+      
+      // Must be English
+      if (!lang.includes('en')) return false;
+      
+      // Exclude female voices
+      if (name.includes('female') || name.includes('samantha') || 
+          name.includes('victoria') || name.includes('karen') || 
+          name.includes('moira') || name.includes('fiona') ||
+          name.includes('tessa') || name.includes('zira')) return false;
+      
+      // Prefer known male voices
+      return name.includes('alex') || name.includes('fred') || 
+             name.includes('bruce') || name.includes('male') ||
+             name.includes('david') || name.includes('mark');
+    });
+    
+    if (americanMaleVoice) {
+      utterance.voice = americanMaleVoice;
+      console.log('Selected voice:', americanMaleVoice.name);
+    }
+    
+    utterance.pitch = 0.8; // Lower pitch for more masculine sound
+    utterance.rate = 0.95;
+    
     window.speechSynthesis.speak(utterance);
   }, [activeGameInfo]);
 
