@@ -19,6 +19,9 @@ export default {
   // TODO: Add actual audio file
   titleJingle: '/sounds/tag-intro.mp3',
   
+  // TTS voice for this game (will announce game name and be used in-game)
+  voice: 'Samantha', // Energetic, playful voice for tag
+  
   // Dynamic import for the game component
   component: () => import('./index.jsx')
 };

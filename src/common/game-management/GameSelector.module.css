@@ -132,11 +132,11 @@
   pointer-events: auto;
   padding: 1.2rem 3rem;
   font-size: 1.5rem;
-  font-weight: bold;
-  font-family: monospace;
-  background: #00ff00;
-  color: #000;
-  border: none;
+  font-weight: 500;
+  font-family: 'Satoshi', sans-serif;
+  background: transparent;
+  color: #fff;
+  border: 3px solid #fff;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 2px;
