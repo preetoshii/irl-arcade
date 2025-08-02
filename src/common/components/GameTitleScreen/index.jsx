@@ -9,8 +9,6 @@ import styles from './GameTitleScreen.module.css';
 
 function GameTitleScreen({ 
   title,
-  icon,
-  stats = [],
   backgroundColor = '#000',
   className = ''
 }) {
@@ -20,22 +18,15 @@ function GameTitleScreen({
       style={{ backgroundColor }}
     >
       <h1 className={styles.gameTitle}>
-        {title}
+        {title.split('').map((letter, index) => (
+          <span 
+            key={index} 
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
+            {letter === ' ' ? '\u00A0' : letter}
+          </span>
+        ))}
       </h1>
-      
-      {icon && (
-        <div className={styles.gameIcon}>
-          {icon}
-        </div>
-      )}
-
-      {stats.length > 0 && (
-        <div className={styles.gameStats}>
-          {stats.map((stat, index) => (
-            <span key={index}>{stat}</span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

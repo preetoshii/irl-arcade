@@ -2,6 +2,27 @@
  * index.css - Reset and base styles for retro-minimal design
  */
 
+@font-face {
+  font-family: 'Pixel Game';
+  src: url('./assets/fonts/Pixel Game.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Satoshi';
+  src: url('./assets/fonts/Satoshi-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Satoshi';
+  src: url('./assets/fonts/Satoshi-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+}
+
 :root {
   font-family: monospace;
   line-height: 1.5;

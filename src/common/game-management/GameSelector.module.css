@@ -104,7 +104,7 @@
   justify-content: flex-end;
   align-items: center;
   padding: 2rem;
-  padding-bottom: 3rem;
+  padding-bottom: 5rem;
 }
 
 /* Game description - retro box */
@@ -114,18 +114,17 @@
   text-align: center;
   margin-bottom: 2rem;
   padding: 1rem 1.5rem;
-  background: #000;
-  border: 3px solid #fff;
-  font-family: monospace;
+  font-family: 'Satoshi', sans-serif;
 }
 
 .gameDescriptionOverlay p {
   margin: 0;
-  font-size: 1rem;
-  line-height: 1.4;
+  font-size: 1.4rem;
+  line-height: 1.6;
   color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  text-transform: lowercase;
+  letter-spacing: 0.5px;
+  font-weight: 400;
 }
 
 /* START GAME button - retro style */
@@ -186,9 +185,8 @@
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
-  .gameDescriptionOverlay {
-    font-size: 0.9rem;
-    padding: 0.8rem 1.2rem;
+  .gameDescriptionOverlay p {
+    font-size: 1.2rem;
   }
   
   .startButton {
@@ -198,7 +196,7 @@
   
   .overlayControls {
     padding: 1.5rem;
-    padding-bottom: 2rem;
+    padding-bottom: 4rem;
   }
 }
 

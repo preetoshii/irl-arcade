@@ -11,9 +11,16 @@ import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import styles from './GameSelector.module.css';
 
-function CarouselSlide({ game, isActive, mode = 'title' }) {
+function CarouselSlide({ game, isActive, mode = 'title', onActiveChange }) {
   const [GameComponent, setGameComponent] = useState(null);
   const [loadError, setLoadError] = useState(null);
+  
+  // Report when this slide becomes active
+  useEffect(() => {
+    if (isActive && onActiveChange) {
+      onActiveChange(game);
+    }
+  }, [isActive, game, onActiveChange]);
 
   // Dynamically import the game component
   useEffect(() => {
