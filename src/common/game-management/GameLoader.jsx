@@ -65,7 +65,7 @@ function GameLoader({ gameId, onExit }) {
   // Render the loaded game component
   return (
     <Suspense fallback={<div>Loading game assets...</div>}>
-      <GameComponent onExit={onExit} />
+      <GameComponent mode="playing" onExit={onExit} />
     </Suspense>
   );
 }

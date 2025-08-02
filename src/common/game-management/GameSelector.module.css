@@ -1,75 +1,253 @@
 /**
- * GameSelector.module.css - Styles for the game selection menu
+ * GameSelector.module.css - Styles for the carousel game selector
+ * 
+ * Features:
+ * - Full viewport carousel with horizontal scroll
+ * - CSS scroll-snap for native feel
+ * - Fixed overlay controls
+ * - Smooth transitions
  */
 
-.gameSelector {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+/* Container takes full viewport */
+.selectorContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #0a0a0a;
 }
 
-.title {
+/* Horizontal scrolling carousel */
+.carousel {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  transition: opacity 0.3s ease;
+}
+
+.carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* Each slide takes full viewport */
+.carouselSlide {
+  flex: 0 0 100vw;
+  width: 100vw;
+  height: 100vh;
+  scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Slide content styling */
+.slideContent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Placeholder for non-mounted games */
+.slidePlaceholder {
   text-align: center;
+  opacity: 0.3;
+}
+
+.slidePlaceholder h2 {
   font-size: 3rem;
-  margin-bottom: 3rem;
-  background: linear-gradient(135deg, #646cff 0%, #535bf2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  margin-bottom: 1rem;
+  color: #646cff;
 }
 
-.gamesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2rem;
+/* Loading state */
+.slideLoading {
+  text-align: center;
 }
 
-.gameCard {
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
+.slideLoading h2 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #646cff;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Error state */
+.slideError {
+  text-align: center;
+  color: #ff6464;
+}
+
+/* Fixed overlay controls */
+.overlayControls {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
   padding: 2rem;
+}
+
+/* Game description overlay */
+.gameDescriptionOverlay {
+  pointer-events: none;
+  max-width: 600px;
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem 2rem;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gameDescriptionOverlay p {
+  margin: 0;
+  font-size: 1.3rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 300;
+}
+
+/* START GAME button */
+.startButton {
+  pointer-events: auto;
+  padding: 1.5rem 4rem;
+  font-size: 1.8rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+  color: #0a0a0a;
+  border: none;
+  border-radius: 50px;
   cursor: pointer;
+  box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 3rem;
   transition: all 0.3s ease;
 }
 
-.gameCard:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: #646cff;
-  box-shadow: 0 8px 32px rgba(100, 108, 255, 0.2);
+.startButton:hover {
+  box-shadow: 0 12px 40px rgba(0, 255, 136, 0.5);
+  transform: translateY(-2px);
 }
 
-.gameCard h2 {
-  margin: 0 0 1rem 0;
-  color: #646cff;
-  font-size: 1.8rem;
+.startButton:active {
+  transform: translateY(0);
 }
 
-.gameCard p {
-  margin: 0 0 1.5rem 0;
-  opacity: 0.8;
-  line-height: 1.6;
-}
-
-.gameInfo {
+/* Slide indicators */
+.indicators {
+  pointer-events: auto;
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  font-size: 0.9rem;
-  opacity: 0.6;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 30px;
+  backdrop-filter: blur(10px);
 }
 
-.gameInfo span {
-  background: rgba(100, 108, 255, 0.2);
-  padding: 0.3rem 0.8rem;
-  border-radius: 15px;
-  border: 1px solid rgba(100, 108, 255, 0.3);
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
 }
 
+.indicator:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.2);
+}
+
+.indicatorActive {
+  width: 24px;
+  border-radius: 4px;
+  background: #646cff;
+}
+
+/* No games message */
 .noGames {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
   text-align: center;
+  font-size: 1.2rem;
   opacity: 0.6;
   font-style: italic;
-  margin-top: 4rem;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .gameDescriptionOverlay {
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.5rem;
+    max-width: 90%;
+  }
+  
+  .gameDescriptionOverlay p {
+    font-size: 1.1rem;
+  }
+  
+  .startButton {
+    padding: 1.2rem 3rem;
+    font-size: 1.4rem;
+  }
+  
+  .indicators {
+    bottom: 1rem;
+  }
+}
+
+/* Game title screen styles (for games to use) */
+.gameTitleScreen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.gameTitleScreen h1 {
+  font-size: 5rem;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+}
+
+.gameTitleScreen p {
+  font-size: 1.5rem;
+  opacity: 0.8;
+  max-width: 600px;
+  line-height: 1.6;
 }

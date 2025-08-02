@@ -11,11 +11,14 @@
 -------------------------
 A platform for **audio-based games** that can be played outdoors. Instead of traditional equipment like balls or nets, audio itself becomes the game prop or conductor. The app connects to a Bluetooth speaker and offers a menu of different games - from Simon Says to Tag to games we haven't invented yet. Each game is a self-contained experience where players interact based on what they hear.
 
+**Primary Platform**: Mobile phones! Players will mainly use their phones in parks and outdoor spaces, so we design mobile-first with touch-friendly interfaces that also work well on desktop.
+
 
 
 ### What We Know
 -------------------------
 - **Audio-based**: The game exists primarily through sound
+- **Mobile-first**: Designed for phones used outdoors - large buttons, readable text, touch gestures
 - **Multiplayer**: 3-10+ people playing in physical space (could work with fewer or more)
 - **Dynamic and Personalized**: System can call out player names, create personalized experiences
 - **Physical space**: Meant to be played outdoors or in open areas
@@ -384,6 +387,75 @@ gameRegistry.register(yourGameConfig);
 ```
 
 That's it! Your game now appears in the menu and can be played immediately.
+
+
+
+
+------------------------------------------------------------------
+## MOBILE-FIRST DESIGN GUIDELINES
+------------------------------------------------------------------
+
+Since players primarily use phones outdoors, follow these principles:
+
+**Touch Targets**
+- Minimum 44x44px for all interactive elements
+- Generous padding around buttons
+- Consider thumb reach on large phones
+
+**Visual Design**
+- High contrast for outdoor visibility
+- Large, readable text (min 16px base)
+- Bold colors that work in sunlight
+- Avoid tiny UI elements
+
+**Interactions**
+- Swipe gestures for navigation
+- Tap for actions (avoid double-tap)
+- No hover states as primary indicators
+- Clear visual feedback for touches
+
+**Layout**
+- Vertical layouts work best
+- Important controls in thumb-friendly zones
+- Avoid needing landscape orientation
+- Test on various phone sizes
+
+**Performance**
+- Optimize for mobile GPUs
+- Minimize battery drain
+- Quick load times on cellular
+
+
+
+
+------------------------------------------------------------------
+## VISUAL DESIGN AESTHETIC
+------------------------------------------------------------------
+
+**Hyper-Minimal 8-Bit Style**
+
+We're going for a retro-modern vibe that gets out of the way so people focus on playing together:
+
+**Duo-Toned Simplicity**
+- UI elements in one color (usually white)
+- Single backdrop color per screen
+- No gradients, shadows, or glows
+- No opacity/transparency effects
+- Solid colors only
+
+**8-Bit Personality**
+- Pixelated fonts or clean mono fonts
+- Simple geometric shapes
+- Retro micro-animations (think NES)
+- Nostalgic without being kitsch
+
+**Minimal UI Philosophy**
+- Only show what's essential
+- Large, clear touch targets
+- Let the audio be the star
+- The app should "disappear" during play
+
+Think original Game Boy meets modern minimalism - clean, focused, with just enough retro charm.
 
 
 

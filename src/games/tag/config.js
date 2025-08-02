@@ -15,6 +15,10 @@ export default {
   // Systems this game requires
   requires: ['audio', 'timer'],
   
+  // 8-bit jingle that plays when this game is selected
+  // TODO: Add actual audio file
+  titleJingle: '/sounds/tag-intro.mp3',
+  
   // Dynamic import for the game component
   component: () => import('./index.jsx')
 };

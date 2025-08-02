@@ -1,7 +1,7 @@
 # IRL Arcade Project Context
 
 ## Project Overview
-Build modular audio-based games for outdoor play. Each game is self-contained and selectable from a central menu. Code is hot-reloadable and experiment-friendly.
+Build modular audio-based games for outdoor play. Each game is self-contained and selectable from a central menu. Code is hot-reloadable and experiment-friendly. **Mobile-first design** - games are primarily played on phones in parks, so optimize for touch and small screens first.
 
 ## Your Core Workflow
 For ANY code request:
@@ -82,11 +82,24 @@ export default {
 - **PlayerState** - Player names, teams, scores
 
 ## Key Principles
+- **Mobile-first design** - Primary use is on phones outdoors
+- **Retro-minimal aesthetic** - 8-bit inspired, duo-toned, no gradients/glows/opacity
 - Games are independent mini-apps
 - Features are LEGO blocks
 - Hot reload keeps momentum
 - Audio is the core focus
 - Every line has a proper home
+- Touch-friendly UI with large tap targets
+- Responsive but optimized for mobile viewport
+
+## Design Language
+**Hyper-minimal 8-bit style** - The app should disappear so people focus on playing together:
+- Duo-toned: UI color (usually white) + backdrop color
+- No gradients, shadows, glows, or opacity layers
+- Solid colors only - think NES/Game Boy aesthetics
+- Minimal UI that gets out of the way
+- Retro personality through typography and micro-animations
+- The game is about people, not pixels
 
 ## Remember
 Always: Analyze → Classify → Place → Teach

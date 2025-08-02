@@ -1,0 +1,179 @@
+/**
+ * SimonSays.module.css - Styles for Simon Says game
+ * 
+ * Includes styles for both title screen and gameplay
+ */
+
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Title Screen Styles */
+.titleScreen {
+  background: radial-gradient(circle at center, #1a1a2e 0%, #0a0a0a 100%);
+  color: white;
+}
+
+.gameTitle {
+  font-size: 6rem;
+  margin: 0 0 2rem 0;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 900;
+  text-shadow: 0 0 40px rgba(255, 107, 107, 0.5);
+}
+
+.gameIcon {
+  font-size: 5rem;
+  margin: 2rem 0;
+  filter: drop-shadow(0 0 20px rgba(255, 107, 107, 0.6));
+}
+
+.gameDescription {
+  font-size: 1.4rem;
+  margin: 2rem 0 3rem 0;
+  max-width: 500px;
+  opacity: 0.9;
+  line-height: 1.8;
+}
+
+.gameStats {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 1.1rem;
+  opacity: 0.7;
+  margin-top: 3rem;
+}
+
+.gameStats span {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Game Screen Styles */
+.gameScreen {
+  width: 100%;
+  height: 100%;
+  padding: 2rem;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.gameHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  margin-bottom: 2rem;
+}
+
+.gameHeader h2 {
+  margin: 0;
+  font-size: 2rem;
+  color: #ff6b6b;
+}
+
+.score {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4ecdc4;
+}
+
+.gameContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.commandDisplay {
+  background: rgba(255, 107, 107, 0.1);
+  border: 3px solid #ff6b6b;
+  border-radius: 20px;
+  padding: 3rem 5rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 0 40px rgba(255, 107, 107, 0.3);
+}
+
+.commandDisplay h3 {
+  margin: 0;
+  font-size: 3rem;
+  text-align: center;
+  color: #ff6b6b;
+}
+
+.instructions {
+  font-size: 1.2rem;
+  opacity: 0.7;
+  text-align: center;
+  max-width: 600px;
+}
+
+.gameOver {
+  text-align: center;
+}
+
+.gameOver h2 {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  color: #ff6b6b;
+}
+
+.gameOver p {
+  font-size: 2rem;
+  color: #4ecdc4;
+}
+
+.exitButton {
+  align-self: center;
+  padding: 1rem 3rem;
+  font-size: 1.2rem;
+  background: rgba(255, 0, 0, 0.2);
+  border: 2px solid rgba(255, 0, 0, 0.5);
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.exitButton:hover {
+  background: rgba(255, 0, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .gameTitle {
+    font-size: 4rem;
+  }
+  
+  .gameIcon {
+    font-size: 3rem;
+  }
+  
+  .gameDescription {
+    font-size: 1.2rem;
+  }
+  
+  .commandDisplay {
+    padding: 2rem 3rem;
+  }
+  
+  .commandDisplay h3 {
+    font-size: 2rem;
+  }
+}
