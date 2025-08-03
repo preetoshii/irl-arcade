@@ -249,12 +249,15 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
               }}
               whileTap={{ scale: 0.95 }}
               initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
+              animate={{ 
+                y: 0, 
+                opacity: 1,
+                transition: { delay: 0.5 }
+              }}
               transition={{ 
                 type: "spring",
                 stiffness: 400,
-                damping: 17,
-                default: { delay: 0.5 }
+                damping: 17
               }}
             >
               START GAME
