@@ -195,6 +195,27 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     audio.play().catch(err => console.log('Hover sound failed:', err));
   };
 
+  const handleNavigate = (direction) => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+    
+    // Play click sound
+    const audio = new Audio('/sounds/click.wav');
+    audio.volume = 0.3;
+    audio.play().catch(err => console.log('Click sound failed:', err));
+    
+    const slideWidth = carousel.offsetWidth;
+    const currentScroll = carousel.scrollLeft;
+    const targetScroll = direction === 'left' 
+      ? currentScroll - slideWidth 
+      : currentScroll + slideWidth;
+    
+    carousel.scrollTo({
+      left: targetScroll,
+      behavior: 'smooth'
+    });
+  };
+
   if (games.length === 0) {
     return (
       <div className={styles.noGames}>
@@ -231,6 +252,40 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
           );
         })}
       </div>
+
+      {/* Left navigation button */}
+      <motion.button
+        className={styles.navButton}
+        onClick={() => handleNavigate('left')}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        style={{ 
+          left: '2rem',
+          color: `rgb(${interpolatedColor})`,
+          borderColor: `rgb(${interpolatedColor})`
+        }}
+      >
+        ◀
+      </motion.button>
+
+      {/* Right navigation button */}
+      <motion.button
+        className={styles.navButton}
+        onClick={() => handleNavigate('right')}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        style={{ 
+          right: '2rem',
+          color: `rgb(${interpolatedColor})`,
+          borderColor: `rgb(${interpolatedColor})`
+        }}
+      >
+        ▶
+      </motion.button>
 
       {/* Fixed overlay controls */}
       <AnimatePresence>

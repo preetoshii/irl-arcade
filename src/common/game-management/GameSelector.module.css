@@ -145,6 +145,22 @@
   /* Remove CSS transitions - handled by Framer Motion */
 }
 
+/* Navigation buttons */
+.navButton {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 3px solid #fff;
+  color: #fff;
+  font-size: 2rem;
+  font-family: monospace;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  z-index: 100;
+  transition: none; /* Handled by Framer Motion */
+}
+
 /* Slide indicators - simple dots */
 .indicators {
   pointer-events: auto;
@@ -194,6 +210,11 @@
   .overlayControls {
     padding: 1.5rem;
     padding-bottom: 4rem;
+  }
+  
+  /* Hide nav buttons on mobile - swipe is more natural */
+  .navButton {
+    display: none;
   }
 }
 
