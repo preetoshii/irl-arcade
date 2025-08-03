@@ -225,6 +225,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
+                  style={{ color: `rgb(${interpolatedColor})` }}
                 >
                   <p>{activeGameInfo?.description}</p>
                 </motion.div>
