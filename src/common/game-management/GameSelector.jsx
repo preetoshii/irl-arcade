@@ -245,7 +245,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              PRESS START
+              START GAME
             </motion.button>
           </motion.div>
         )}

@@ -27,9 +27,8 @@ function CursorTrail({ color = '255, 255, 255' }) {
     };
     window.addEventListener('mousemove', handleMouseMove);
 
-    // Pixel size (matching blob pixel size)
-    const pixelSize = 4;
-    const maxTrailLength = 20; // Number of trail segments
+    // Trail settings
+    const maxTrailLength = 15; // Number of trail segments
     
     // Trail segment class
     class TrailSegment {
@@ -38,12 +37,6 @@ function CursorTrail({ color = '255, 255, 255' }) {
         this.y = y;
         this.life = 1;
         this.index = index;
-        this.size = 1;
-        
-        // Random blob-like variations
-        this.offsetX = (Math.random() - 0.5) * pixelSize;
-        this.offsetY = (Math.random() - 0.5) * pixelSize;
-        this.phase = Math.random() * Math.PI * 2;
       }
       
       update(targetX, targetY) {
@@ -51,13 +44,8 @@ function CursorTrail({ color = '255, 255, 255' }) {
         const dx = targetX - this.x;
         const dy = targetY - this.y;
         
-        this.x += dx * 0.15;
-        this.y += dy * 0.15;
-        
-        // Add subtle wobble
-        this.phase += 0.1;
-        this.offsetX = Math.sin(this.phase) * pixelSize * 0.5;
-        this.offsetY = Math.cos(this.phase * 1.3) * pixelSize * 0.5;
+        this.x += dx * 0.2;
+        this.y += dy * 0.2;
         
         // Fade based on position in trail
         this.life = 1 - (this.index / maxTrailLength);
@@ -66,27 +54,27 @@ function CursorTrail({ color = '255, 255, 255' }) {
       draw(ctx) {
         if (this.life <= 0) return;
         
-        // Pixelated position
-        const pixelX = Math.floor((this.x + this.offsetX) / pixelSize) * pixelSize;
-        const pixelY = Math.floor((this.y + this.offsetY) / pixelSize) * pixelSize;
+        const alpha = this.life * 0.5; // Semi-transparent
+        const scale = this.life * 0.8 + 0.2; // Scale from 100% to 20%
         
-        // Blob-like shape with varying sizes
-        const baseSize = pixelSize * (1 + Math.sin(this.phase) * 0.3);
-        const alpha = this.life * 0.6; // Semi-transparent
+        // Draw triangle cursor shape
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(scale, scale);
         
-        ctx.fillStyle = `rgba(${color}, ${alpha})`;
+        ctx.strokeStyle = `rgba(${color}, ${alpha})`;
+        ctx.lineWidth = 2;
+        ctx.lineJoin = 'round';
         
-        // Draw pixelated blob shape
-        const size = Math.floor(baseSize / pixelSize) * pixelSize;
-        ctx.fillRect(pixelX - size/2, pixelY - size/2, size, size);
+        // Draw triangle path (matching cursor shape)
+        ctx.beginPath();
+        ctx.moveTo(-8, -10); // Left point
+        ctx.lineTo(12, 0);   // Right point (tip)
+        ctx.lineTo(-8, 10);  // Bottom point
+        ctx.closePath();
+        ctx.stroke();
         
-        // Add some extra pixels for blob effect
-        if (this.life > 0.5) {
-          ctx.fillRect(pixelX - size/2 - pixelSize, pixelY, pixelSize, pixelSize);
-          ctx.fillRect(pixelX + size/2, pixelY, pixelSize, pixelSize);
-          ctx.fillRect(pixelX, pixelY - size/2 - pixelSize, pixelSize, pixelSize);
-          ctx.fillRect(pixelX, pixelY + size/2, pixelSize, pixelSize);
-        }
+        ctx.restore();
       }
     }
     
