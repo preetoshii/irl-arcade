@@ -160,15 +160,15 @@ function App() {
               right: '20px',
               background: 'transparent',
               border: 'none',
-              width: '48px',
-              height: '48px',
+              width: '80px',
+              height: '80px',
               cursor: 'pointer',
               transition: 'all 0.2s',
               zIndex: 10000,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '0'
+              padding: '20px'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = '#fff';
