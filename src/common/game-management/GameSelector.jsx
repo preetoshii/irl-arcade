@@ -175,10 +175,10 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   }, [activeGameInfo]);
 
   const handleStartGame = () => {
-    // Play click sound
-    const audio = new Audio('/sounds/click.wav');
+    // Play select sound for game selection
+    const audio = new Audio('/sounds/select.wav');
     audio.volume = 0.3;
-    audio.play().catch(err => console.log('Click sound failed:', err));
+    audio.play().catch(err => console.log('Select sound failed:', err));
     
     setIsStarting(true);
     
