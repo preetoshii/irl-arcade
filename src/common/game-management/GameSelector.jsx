@@ -199,10 +199,13 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     const carousel = carouselRef.current;
     if (!carousel) return;
     
-    // Play click sound
-    const audio = new Audio('/sounds/click.wav');
+    // Play sweep sound for navigation
+    const audio = new Audio('/sounds/sweep.wav');
     audio.volume = 0.3;
-    audio.play().catch(err => console.log('Click sound failed:', err));
+    audio.play().catch(err => console.log('Sweep sound failed:', err));
+    
+    // Disable automatic sweep sound for this navigation
+    hasPlayedSweepRef.current = true;
     
     const slideWidth = carousel.offsetWidth;
     const currentScroll = carousel.scrollLeft;
