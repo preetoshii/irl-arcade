@@ -94,6 +94,11 @@ function CursorTrail({ color = '255, 255, 255' }) {
         
         ctx.restore();
       }
+      
+      fadeOut() {
+        // Gradually reduce life for smooth fade
+        this.life = Math.max(0, this.life - 0.05);
+      }
     }
     
     // Initialize trail
@@ -124,9 +129,11 @@ function CursorTrail({ color = '255, 255, 255' }) {
         }
       }
       
-      // Remove segments faster when not moving
-      if (!isMovingRef.current && trailRef.current.length > 0) {
-        trailRef.current.pop();
+      // Fade out segments when not moving
+      if (!isMovingRef.current) {
+        trailRef.current.forEach(segment => segment.fadeOut());
+        // Remove fully faded segments
+        trailRef.current = trailRef.current.filter(segment => segment.life > 0);
       }
       
       // Update and draw trail segments
