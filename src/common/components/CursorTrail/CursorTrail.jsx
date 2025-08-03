@@ -6,6 +6,9 @@ function CursorTrail({ color = '255, 255, 255' }) {
   const mouseRef = useRef({ x: 0, y: 0 });
   const trailRef = useRef([]);
   const animationRef = useRef(null);
+  const lastMouseRef = useRef({ x: 0, y: 0 });
+  const isMovingRef = useRef(false);
+  const movementTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -20,12 +23,7 @@ function CursorTrail({ color = '255, 255, 255' }) {
     };
     resize();
     window.addEventListener('resize', resize);
-
     // Track mouse position and movement
-    const lastMouseRef = useRef({ x: 0, y: 0 });
-    const isMovingRef = useRef(false);
-    const movementTimeoutRef = useRef(null);
-    
     const handleMouseMove = (e) => {
       const dx = e.clientX - lastMouseRef.current.x;
       const dy = e.clientY - lastMouseRef.current.y;
