@@ -238,13 +238,23 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
               onClick={handleStartGame}
               style={{
                 borderColor: `rgb(${interpolatedColor})`,
-                color: `rgb(${interpolatedColor})`
+                color: `rgb(${interpolatedColor})`,
+                backgroundColor: 'transparent'
               }}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ 
+                scale: 1.05,
+                backgroundColor: `rgb(${interpolatedColor})`,
+                color: '#000'
+              }}
               whileTap={{ scale: 0.95 }}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={{ 
+                scale: { duration: 0.1 },
+                backgroundColor: { duration: 0.1 },
+                color: { duration: 0.1 },
+                default: { delay: 0.5 }
+              }}
             >
               START GAME
             </motion.button>

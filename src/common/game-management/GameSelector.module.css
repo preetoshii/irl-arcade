@@ -141,12 +141,8 @@
   text-transform: uppercase;
   letter-spacing: 0;
   margin-bottom: 2rem;
-  transition: all 0.2s;
   line-height: 1;
-}
-
-.startButton:active {
-  transform: scale(0.95);
+  /* Remove CSS transitions - handled by Framer Motion */
 }
 
 /* Slide indicators - simple dots */
