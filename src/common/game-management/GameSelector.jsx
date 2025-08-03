@@ -175,6 +175,11 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   }, [activeGameInfo]);
 
   const handleStartGame = () => {
+    // Play click sound
+    const audio = new Audio('/sounds/click.wav');
+    audio.volume = 0.3;
+    audio.play().catch(err => console.log('Click sound failed:', err));
+    
     setIsStarting(true);
     
     // Small delay for transition

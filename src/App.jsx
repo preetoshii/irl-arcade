@@ -74,6 +74,11 @@ function App() {
   }, [selectedGame, showDebug, musicEnabled]);
 
   const toggleMusic = () => {
+    // Play click sound
+    const clickAudio = new Audio('/sounds/click.wav');
+    clickAudio.volume = 0.3;
+    clickAudio.play().catch(err => console.log('Click sound failed:', err));
+    
     if (!musicEnabled && audioRef.current) {
       // Create audio context and analyzer when enabling music
       if (!audioContextRef.current) {
