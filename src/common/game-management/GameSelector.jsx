@@ -169,6 +169,13 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     }, 300);
   };
 
+  const handleButtonHover = () => {
+    // Play hover sound
+    const audio = new Audio('/sounds/hover.wav');
+    audio.volume = 0.3;
+    audio.play().catch(err => console.log('Hover sound failed:', err));
+  };
+
   if (games.length === 0) {
     return (
       <div className={styles.noGames}>
@@ -236,6 +243,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
             <motion.button
               className={styles.startButton}
               onClick={handleStartGame}
+              onMouseEnter={handleButtonHover}
               style={{
                 borderColor: `rgb(${interpolatedColor})`,
                 color: `rgb(${interpolatedColor})`,
