@@ -43,6 +43,16 @@ body, button, input {
   font-family: monospace;
 }
 
+/* Custom retro cursor */
+body {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M 4 2 L 20 12 L 4 22 Z" fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/></svg>') 2 12, auto;
+}
+
+/* Keep pointer cursor for interactive elements */
+button, a, input, select, textarea, [role="button"] {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M 4 2 L 20 12 L 4 22 Z" fill="white" stroke="white" stroke-width="2" stroke-linejoin="round"/></svg>') 2 12, pointer;
+}
+
 /* Remove default button styles */
 button {
   background: none;
