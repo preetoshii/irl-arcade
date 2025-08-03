@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import GameSelector from './common/game-management/GameSelector'
 import GameLoader from './common/game-management/GameLoader'
 import SimonSaysDebugPage from './games/simon-says/debug/DebugPage'
+import CursorTrail from './common/components/CursorTrail/CursorTrail'
 import './App.css'
 
 // Import and register all games
@@ -132,6 +133,9 @@ function App() {
           }
         `}
       </style>
+      
+      {/* Cursor trail effect */}
+      <CursorTrail color={interpolatedColor} />
       
       {!selectedGame ? (
         <motion.div
