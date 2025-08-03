@@ -130,14 +130,14 @@
 /* START GAME button - retro style */
 .startButton {
   pointer-events: auto;
-  padding: 2.25rem 4.5rem;
-  font-size: 1.5rem;
+  padding: 1.875rem 3.75rem;
+  font-size: 1.25rem;
   font-weight: normal;
   font-family: 'Press Start 2P', monospace;
   background: transparent;
   color: #fff;
-  border: 4px solid #fff;
-  border-radius: 3rem; /* Rounded rectangle */
+  border: 3px solid #fff;
+  border-radius: 2.5rem; /* Rounded rectangle */
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0;
@@ -192,8 +192,8 @@
   }
   
   .startButton {
-    padding: 1.5rem 3.75rem;
-    font-size: 1.25rem;
+    padding: 1.25rem 3.125rem;
+    font-size: 1.15rem;
   }
   
   .overlayControls {
