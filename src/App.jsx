@@ -129,7 +129,7 @@ function App() {
           }
           
           button, a, input, select, textarea, [role="button"] {
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M 4 2 L 20 12 L 4 22 Z" fill="rgb(${interpolatedColor})" stroke="rgb(${interpolatedColor})" stroke-width="1.5" stroke-linejoin="round"/></svg>') 2 12, pointer;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M 4 2 L 20 12 L 4 22 Z" fill="none" stroke="rgb(${interpolatedColor})" stroke-width="2" stroke-linejoin="round"/></svg>') 2 12, auto;
           }
         `}
       </style>

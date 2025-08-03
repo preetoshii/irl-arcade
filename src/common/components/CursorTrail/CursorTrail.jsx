@@ -21,9 +21,29 @@ function CursorTrail({ color = '255, 255, 255' }) {
     resize();
     window.addEventListener('resize', resize);
 
-    // Track mouse position
+    // Track mouse position and movement
+    const lastMouseRef = useRef({ x: 0, y: 0 });
+    const isMovingRef = useRef(false);
+    const movementTimeoutRef = useRef(null);
+    
     const handleMouseMove = (e) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY };
+      const dx = e.clientX - lastMouseRef.current.x;
+      const dy = e.clientY - lastMouseRef.current.y;
+      
+      // Check if mouse actually moved
+      if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+        isMovingRef.current = true;
+        mouseRef.current = { x: e.clientX, y: e.clientY };
+        lastMouseRef.current = { x: e.clientX, y: e.clientY };
+        
+        // Clear any existing timeout
+        clearTimeout(movementTimeoutRef.current);
+        
+        // Set mouse as not moving after 100ms of no movement
+        movementTimeoutRef.current = setTimeout(() => {
+          isMovingRef.current = false;
+        }, 100);
+      }
     };
     window.addEventListener('mousemove', handleMouseMove);
 
@@ -86,8 +106,8 @@ function CursorTrail({ color = '255, 255, 255' }) {
       
       frameCount++;
       
-      // Add new segment every few frames
-      if (frameCount % 2 === 0) {
+      // Only add new segments when mouse is moving
+      if (frameCount % 2 === 0 && isMovingRef.current) {
         // Add to front of trail
         trailRef.current.unshift(new TrailSegment(
           mouseRef.current.x,
@@ -104,6 +124,11 @@ function CursorTrail({ color = '255, 255, 255' }) {
         if (trailRef.current.length > maxTrailLength) {
           trailRef.current.pop();
         }
+      }
+      
+      // Remove segments faster when not moving
+      if (!isMovingRef.current && trailRef.current.length > 0) {
+        trailRef.current.pop();
       }
       
       // Update and draw trail segments
