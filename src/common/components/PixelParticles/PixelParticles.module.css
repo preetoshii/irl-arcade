@@ -1,0 +1,12 @@
+.canvas {
+  position: fixed; /* Fixed instead of absolute to ignore parent constraints */
+  top: 0;
+  left: 0;
+  width: 100vw; /* Viewport width instead of percentage */
+  height: 100vh; /* Viewport height instead of percentage */
+  z-index: -10; /* Far behind everything */
+  pointer-events: none;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}

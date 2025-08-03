@@ -11,6 +11,7 @@ export default {
   minPlayers: 2,
   maxPlayers: 100,
   requiresTeams: true,
+  color: '255, 102, 0', // Orange-red
   
   // Systems this game requires
   requires: ['audio', 'timer'],

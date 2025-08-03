@@ -12,6 +12,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gameRegistry from './GameRegistry';
 import CarouselSlide from './CarouselSlide';
+import PixelParticles from '../components/PixelParticles/PixelParticles';
 import styles from './GameSelector.module.css';
 
 function GameSelector({ onGameSelect, analyser }) {
@@ -167,6 +168,9 @@ function GameSelector({ onGameSelect, analyser }) {
 
   return (
     <div className={styles.selectorContainer}>
+      {/* Particles using active game color */}
+      <PixelParticles color={activeGameInfo?.color || '255, 255, 255'} />
+      
       {/* Carousel */}
       <div 
         ref={carouselRef}
