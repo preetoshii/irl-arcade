@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import gameRegistry from './GameRegistry';
 import CarouselSlide from './CarouselSlide';
 import PixelParticles from '../components/PixelParticles/PixelParticles';
+import useScrollColorInterpolation from '../hooks/useScrollColorInterpolation';
 import styles from './GameSelector.module.css';
 
 function GameSelector({ onGameSelect, analyser }) {
@@ -49,6 +50,9 @@ function GameSelector({ onGameSelect, analyser }) {
   };
 
   const orderedGames = getGameOrder();
+  
+  // Get interpolated color based on scroll position
+  const interpolatedColor = useScrollColorInterpolation(carouselRef, orderedGames);
 
   // Handle scroll to detect current game
   useEffect(() => {
@@ -168,8 +172,8 @@ function GameSelector({ onGameSelect, analyser }) {
 
   return (
     <div className={styles.selectorContainer}>
-      {/* Particles using active game color */}
-      <PixelParticles color={activeGameInfo?.color || '255, 255, 255'} />
+      {/* Particles using interpolated color */}
+      <PixelParticles color={interpolatedColor} />
       
       {/* Carousel */}
       <div 
@@ -224,13 +228,17 @@ function GameSelector({ onGameSelect, analyser }) {
             <motion.button
               className={styles.startButton}
               onClick={handleStartGame}
+              style={{
+                borderColor: `rgb(${interpolatedColor})`,
+                color: `rgb(${interpolatedColor})`
+              }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              START GAME
+              PRESS START
             </motion.button>
           </motion.div>
         )}

@@ -16,8 +16,6 @@ function PixelParticles({ color = '255, 255, 255' }) {
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      console.log('Particle canvas size:', canvas.width, 'x', canvas.height);
-      console.log('Window size:', window.innerWidth, 'x', window.innerHeight);
     };
     resize();
     window.addEventListener('resize', resize);

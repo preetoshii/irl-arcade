@@ -130,18 +130,20 @@
 /* START GAME button - retro style */
 .startButton {
   pointer-events: auto;
-  padding: 1.2rem 3rem;
-  font-size: 1.5rem;
-  font-weight: 500;
-  font-family: 'Satoshi', sans-serif;
+  padding: 1.5rem 3rem;
+  font-size: 1rem;
+  font-weight: normal;
+  font-family: 'Press Start 2P', monospace;
   background: transparent;
   color: #fff;
   border: 3px solid #fff;
+  border-radius: 2rem; /* Rounded rectangle */
   cursor: pointer;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 0;
   margin-bottom: 2rem;
-  transition: transform 0.1s;
+  transition: all 0.2s;
+  line-height: 1;
 }
 
 .startButton:active {

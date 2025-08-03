@@ -134,7 +134,7 @@ function App() {
               top: '20px',
               right: '20px',
               background: 'transparent',
-              border: '2px solid #fff',
+              border: 'none',
               width: '48px',
               height: '48px',
               cursor: 'pointer',
