@@ -25,6 +25,8 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const carouselRef = useRef(null);
   const isJumpingRef = useRef(false);
   const scrollTimeoutRef = useRef(null);
+  const lastScrollPositionRef = useRef(0);
+  const hasPlayedSweepRef = useRef(false);
 
   // Get the order of games with current game in the middle
   const getGameOrder = () => {
@@ -77,6 +79,17 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
       const scrollLeft = carousel.scrollLeft;
       const currentSlide = Math.round(scrollLeft / slideWidth);
       
+      // Play sweep sound when starting to scroll away
+      const scrollDelta = Math.abs(scrollLeft - lastScrollPositionRef.current);
+      if (scrollDelta > slideWidth * 0.1 && !hasPlayedSweepRef.current) {
+        const audio = new Audio('/sounds/sweep.wav');
+        audio.volume = 0.3;
+        audio.play().catch(err => console.log('Sweep sound failed:', err));
+        hasPlayedSweepRef.current = true;
+      }
+      
+      lastScrollPositionRef.current = scrollLeft;
+      
       // Clear any pending scroll end check
       clearTimeout(scrollTimeout);
       clearTimeout(scrollTimeoutRef.current);
@@ -98,6 +111,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
         // Set scrolling to false after we've settled
         scrollTimeoutRef.current = setTimeout(() => {
           setIsScrolling(false);
+          hasPlayedSweepRef.current = false; // Reset for next swipe
         }, 100);
       }, 150); // Wait 150ms after scroll stops
     };
