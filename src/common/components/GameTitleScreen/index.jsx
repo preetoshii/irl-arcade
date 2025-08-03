@@ -9,7 +9,7 @@ import { useEffect, useRef } from 'react';
 import styles from './GameTitleScreen.module.css';
 
 // Individual letter blob component
-function LetterBlob({ letter, index, color = '255, 255, 255' }) {
+function LetterBlob({ letter, index, color = '255, 255, 255', analyser }) {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
 
@@ -22,10 +22,10 @@ function LetterBlob({ letter, index, color = '255, 255, 255' }) {
     // Set canvas size to match container
     const resize = () => {
       const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = 100;  // Fixed size for consistent blobs
-      canvas.height = 100;
-      canvas.style.width = '100px';
-      canvas.style.height = '100px';
+      canvas.width = 160;  // Larger canvas for more space
+      canvas.height = 160;
+      canvas.style.width = '160px';
+      canvas.style.height = '160px';
     };
     resize();
     window.addEventListener('resize', resize);
@@ -37,6 +37,10 @@ function LetterBlob({ letter, index, color = '255, 255, 255' }) {
     // Create unique offset for each letter
     const letterOffset = letter.charCodeAt(0) * 0.1 + index * 0.5;
     
+    // Audio data for scaling
+    const bufferLength = analyser ? analyser.frequencyBinCount : 0;
+    const dataArray = new Uint8Array(bufferLength);
+    
     const draw = () => {
       const cols = Math.ceil(canvas.width / pixelSize);
       const rows = Math.ceil(canvas.height / pixelSize);
@@ -46,10 +50,31 @@ function LetterBlob({ letter, index, color = '255, 255, 255' }) {
       
       time += 0.02;
       
+      // Get audio data if available
+      let audioScale = 1;
+      if (analyser) {
+        analyser.getByteFrequencyData(dataArray);
+        // Use different frequency ranges for different letters
+        const freqIndex = index % 3;
+        let freqValue = 0;
+        if (freqIndex === 0) {
+          // Bass for first third of letters
+          freqValue = dataArray.slice(0, 10).reduce((a, b) => a + b, 0) / 10 / 255;
+        } else if (freqIndex === 1) {
+          // Mids for second third
+          freqValue = dataArray.slice(20, 80).reduce((a, b) => a + b, 0) / 60 / 255;
+        } else {
+          // Highs for last third
+          freqValue = dataArray.slice(100, 150).reduce((a, b) => a + b, 0) / 50 / 255;
+        }
+        // Scale between 0.8 and 1.5 based on audio
+        audioScale = 0.8 + freqValue * 0.7;
+      }
+      
       // Center of canvas
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
-      const baseRadius = canvas.width * 0.3;
+      const baseRadius = canvas.width * 0.1875 * audioScale; // Same absolute size as before (30% of 100 = 18.75% of 160)
       
       // Draw pixelated blob
       for (let y = 0; y < rows; y++) {
@@ -102,7 +127,7 @@ function LetterBlob({ letter, index, color = '255, 255, 255' }) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [letter, index, color]);
+  }, [letter, index, color, analyser]);
 
   return (
     <canvas 
@@ -116,7 +141,8 @@ function GameTitleScreen({
   title,
   backgroundColor = 'transparent',
   blobColor = '255, 255, 255', // RGB values as string
-  className = ''
+  className = '',
+  analyser
 }) {
   return (
     <div 
@@ -132,7 +158,7 @@ function GameTitleScreen({
               position: 'relative'
             }}
           >
-            {letter !== ' ' && <LetterBlob letter={letter} index={index} color={blobColor} />}
+            {letter !== ' ' && <LetterBlob letter={letter} index={index} color={blobColor} analyser={analyser} />}
             <span className={styles.letterText}>{letter === ' ' ? '\u00A0' : letter}</span>
           </span>
         ))}

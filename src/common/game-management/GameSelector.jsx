@@ -14,7 +14,7 @@ import gameRegistry from './GameRegistry';
 import CarouselSlide from './CarouselSlide';
 import styles from './GameSelector.module.css';
 
-function GameSelector({ onGameSelect }) {
+function GameSelector({ onGameSelect, analyser }) {
   const games = gameRegistry.getAllGames();
   const [currentIndex, setCurrentIndex] = useState(0); // Current game in original array
   const [isStarting, setIsStarting] = useState(false);
@@ -184,6 +184,7 @@ function GameSelector({ onGameSelect }) {
                 isActive={isActive}
                 mode="title"
                 onActiveChange={isActive ? setActiveGameInfo : undefined}
+                analyser={analyser}
               />
             </div>
           );

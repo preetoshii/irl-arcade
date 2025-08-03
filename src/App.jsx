@@ -21,7 +21,10 @@ function App() {
   const [selectedGame, setSelectedGame] = useState(null);
   const [showDebug, setShowDebug] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
+  const [analyser, setAnalyser] = useState(null);
   const audioRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const sourceRef = useRef(null);
 
   // Initialize speech synthesis and menu music
   useEffect(() => {
@@ -46,6 +49,11 @@ function App() {
       // Cleanup - stop music when component unmounts
       audio.pause();
       audio.src = '';
+      
+      // Clean up audio context
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
     };
   }, []);
 
@@ -65,6 +73,33 @@ function App() {
   }, [selectedGame, showDebug, musicEnabled]);
 
   const toggleMusic = () => {
+    if (!musicEnabled && audioRef.current) {
+      // Create audio context and analyzer when enabling music
+      if (!audioContextRef.current) {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const newAnalyser = audioContext.createAnalyser();
+        newAnalyser.fftSize = 512; // Higher resolution
+        newAnalyser.smoothingTimeConstant = 0.6; // Less smoothing for more reactive
+        
+        const source = audioContext.createMediaElementSource(audioRef.current);
+        source.connect(newAnalyser);
+        newAnalyser.connect(audioContext.destination);
+        
+        audioContextRef.current = audioContext;
+        sourceRef.current = source;
+        setAnalyser(newAnalyser);
+        
+        // Resume context if suspended
+        if (audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+        
+        console.log('Audio context created:', { audioContext, analyser: newAnalyser, state: audioContext.state });
+      }
+    } else {
+      // Clear analyser when disabling music
+      setAnalyser(null);
+    }
     setMusicEnabled(!musicEnabled);
   };
 
@@ -89,7 +124,7 @@ function App() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <GameSelector onGameSelect={handleGameSelect} />
+          <GameSelector onGameSelect={handleGameSelect} analyser={analyser} />
           
           {/* Music toggle button - top right */}
           <button 

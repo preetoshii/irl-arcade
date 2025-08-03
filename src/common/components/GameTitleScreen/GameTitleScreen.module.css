@@ -51,12 +51,14 @@
   display: inline-flex;
   position: relative;
   z-index: 1;
+  overflow: visible;
 }
 
 .gameTitle > span {
   display: inline-block;
   animation: wave 3s ease-in-out infinite;
   position: relative;
+  overflow: visible;
 }
 
 @keyframes wave {

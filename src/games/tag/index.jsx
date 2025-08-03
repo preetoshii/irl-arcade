@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import GameTitleScreen from '../../common/components/GameTitleScreen';
 import styles from './Tag.module.css';
 
-function TagGame({ mode = 'title', isActive, onExit }) {
+function TagGame({ mode = 'title', isActive, onExit, analyser }) {
   const [gameState, setGameState] = useState('waiting'); // waiting, playing, ended
   const [currentIt, setCurrentIt] = useState('');
   const [timeRemaining, setTimeRemaining] = useState(60);
@@ -31,6 +31,7 @@ function TagGame({ mode = 'title', isActive, onExit }) {
       icon="🏃‍♂️"
       stats={['3-50 Players', '•', 'Free for All']}
       blobColor="0, 102, 255"  // Blue
+      analyser={analyser}
     />
   );
 

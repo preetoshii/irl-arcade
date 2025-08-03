@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import GameTitleScreen from '../../common/components/GameTitleScreen';
 import styles from './SimonSays.module.css';
 
-function SimonSaysGame({ mode = 'title', isActive, onExit }) {
+function SimonSaysGame({ mode = 'title', isActive, onExit, analyser }) {
   const [gameState, setGameState] = useState('waiting'); // waiting, playing, ended
   const [currentCommand, setCurrentCommand] = useState('');
   const [score, setScore] = useState(0);
@@ -31,6 +31,7 @@ function SimonSaysGame({ mode = 'title', isActive, onExit }) {
       icon="🎯"
       stats={['2-100 Players', '•', 'Team Game']}
       blobColor="255, 102, 0"  // Orange-red
+      analyser={analyser}
     />
   );
 

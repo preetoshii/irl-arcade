@@ -11,7 +11,7 @@ import { useState, useEffect, Suspense, memo } from 'react';
 import { motion } from 'framer-motion';
 import styles from './GameSelector.module.css';
 
-const CarouselSlide = memo(function CarouselSlide({ game, isActive, mode = 'title', onActiveChange }) {
+const CarouselSlide = memo(function CarouselSlide({ game, isActive, mode = 'title', onActiveChange, analyser }) {
   const [GameComponent, setGameComponent] = useState(null);
   const [loadError, setLoadError] = useState(null);
   
@@ -67,6 +67,7 @@ const CarouselSlide = memo(function CarouselSlide({ game, isActive, mode = 'titl
             mode={mode}
             isActive={isActive}
             gameConfig={game}
+            analyser={analyser}
           />
         )}
       </Suspense>
@@ -77,7 +78,8 @@ const CarouselSlide = memo(function CarouselSlide({ game, isActive, mode = 'titl
   return (
     prevProps.game.id === nextProps.game.id &&
     prevProps.isActive === nextProps.isActive &&
-    prevProps.mode === nextProps.mode
+    prevProps.mode === nextProps.mode &&
+    prevProps.analyser === nextProps.analyser
   );
 });
 

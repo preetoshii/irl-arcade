@@ -2,7 +2,7 @@ import { useState } from 'react';
 import GameTitleScreen from '../../common/components/GameTitleScreen';
 import config from './config';
 
-function SexyMama({ onExit }) {
+function SexyMama({ onExit, analyser }) {
   const [gameState, setGameState] = useState('title');
 
   if (gameState === 'title') {
@@ -10,6 +10,7 @@ function SexyMama({ onExit }) {
       <GameTitleScreen
         title={config.name}
         blobColor="255, 20, 147"  // Deep pink
+        analyser={analyser}
       />
     );
   }
