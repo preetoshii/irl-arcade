@@ -23,6 +23,7 @@ function App() {
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [analyser, setAnalyser] = useState(null);
   const [interpolatedColor, setInterpolatedColor] = useState('255, 255, 255');
+  const [cursorAngle, setCursorAngle] = useState(0);
   const audioRef = useRef(null);
   const audioContextRef = useRef(null);
   const sourceRef = useRef(null);
@@ -72,6 +73,23 @@ function App() {
       }
     }
   }, [selectedGame, showDebug, musicEnabled]);
+
+  // Track mouse position and calculate angle to center
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const deltaX = e.clientX - centerX;
+      const deltaY = e.clientY - centerY;
+      
+      // Calculate angle in degrees
+      const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+      setCursorAngle(angle);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const toggleMusic = () => {
     if (!musicEnabled && audioRef.current) {
@@ -124,11 +142,11 @@ function App() {
       <style>
         {`
           body {
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M 4 2 L 20 12 L 4 22 Z" fill="none" stroke="rgb(${interpolatedColor})" stroke-width="2" stroke-linejoin="round"/></svg>') 2 12, auto;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g transform="rotate(${cursorAngle} 12 12)"><path d="M 4 2 L 20 12 L 4 22 Z" fill="none" stroke="rgb(${interpolatedColor})" stroke-width="2" stroke-linejoin="round"/></g></svg>') 12 12, auto;
           }
           
           button, a, input, select, textarea, [role="button"] {
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M 4 2 L 20 12 L 4 22 Z" fill="rgb(${interpolatedColor})" stroke="rgb(${interpolatedColor})" stroke-width="1.5" stroke-linejoin="round"/></svg>') 2 12, pointer;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g transform="rotate(${cursorAngle} 12 12)"><path d="M 4 2 L 20 12 L 4 22 Z" fill="rgb(${interpolatedColor})" stroke="rgb(${interpolatedColor})" stroke-width="1.5" stroke-linejoin="round"/></g></svg>') 12 12, pointer;
           }
         `}
       </style>
