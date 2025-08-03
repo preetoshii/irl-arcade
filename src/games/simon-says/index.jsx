@@ -30,6 +30,7 @@ function SimonSaysGame({ mode = 'title', isActive, onExit }) {
       title="SIMON SAYS"
       icon="🎯"
       stats={['2-100 Players', '•', 'Team Game']}
+      blobColor="255, 102, 0"  // Orange-red
     />
   );
 

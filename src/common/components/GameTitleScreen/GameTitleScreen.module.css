@@ -21,6 +21,25 @@
   padding: 2rem;
 }
 
+.letterBlob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}
+
+.letterText {
+  position: relative;
+  z-index: 1;
+  color: inherit;
+  display: inline-block;
+}
+
 .gameTitle {
   font-family: 'Pixel Game', monospace;
   font-size: 4.5rem;
@@ -30,11 +49,14 @@
   letter-spacing: 4px;
   line-height: 1;
   display: inline-flex;
+  position: relative;
+  z-index: 1;
 }
 
-.gameTitle > * {
+.gameTitle > span {
   display: inline-block;
   animation: wave 3s ease-in-out infinite;
+  position: relative;
 }
 
 @keyframes wave {

@@ -9,6 +9,7 @@ function SexyMama({ onExit }) {
     return (
       <GameTitleScreen
         title={config.name}
+        blobColor="255, 20, 147"  // Deep pink
       />
     );
   }

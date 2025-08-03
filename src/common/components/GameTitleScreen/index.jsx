@@ -5,11 +5,117 @@
  * Each game passes in its specific content and colors.
  */
 
+import { useEffect, useRef } from 'react';
 import styles from './GameTitleScreen.module.css';
+
+// Individual letter blob component
+function LetterBlob({ letter, index, color = '255, 255, 255' }) {
+  const canvasRef = useRef(null);
+  const animationRef = useRef(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size to match container
+    const resize = () => {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = 100;  // Fixed size for consistent blobs
+      canvas.height = 100;
+      canvas.style.width = '100px';
+      canvas.style.height = '100px';
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Pixel size
+    const pixelSize = 4;
+    let time = 0;
+    
+    // Create unique offset for each letter
+    const letterOffset = letter.charCodeAt(0) * 0.1 + index * 0.5;
+    
+    const draw = () => {
+      const cols = Math.ceil(canvas.width / pixelSize);
+      const rows = Math.ceil(canvas.height / pixelSize);
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      time += 0.02;
+      
+      // Center of canvas
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const baseRadius = canvas.width * 0.3;
+      
+      // Draw pixelated blob
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const pixelX = x * pixelSize + pixelSize / 2;
+          const pixelY = y * pixelSize + pixelSize / 2;
+          
+          // Distance and angle from center
+          const dx = pixelX - centerX;
+          const dy = pixelY - centerY;
+          const angle = Math.atan2(dy, dx);
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          // Create fiery, organic shape using multiple sine waves - unique per letter
+          const wave1 = Math.sin(angle * 3 + time + letterOffset) * 8;
+          const wave2 = Math.sin(angle * 5 - time * 1.5 + letterOffset * 2) * 5;
+          const wave3 = Math.sin(angle * 7 + time * 0.7 - letterOffset) * 4;
+          const wave4 = Math.sin(angle * 2 - time * 0.5 + letterOffset * 1.5) * 6;
+          
+          // Combine waves for complex shape
+          const radiusVariation = wave1 + wave2 + wave3 + wave4;
+          
+          // Add pulsing - only expand, never shrink below base
+          const pulse = Math.sin(time * 2) * 5 + Math.sin(time * 3.7) * 3;
+          const expandOnly = Math.max(0, pulse);
+          
+          // Calculate dynamic radius - ensure it never goes below baseRadius
+          const dynamicRadius = baseRadius + Math.max(0, radiusVariation) + expandOnly;
+          
+          // Add noise for more organic feel - only positive to avoid shrinking
+          const noise = (Math.sin(x * 0.2 + time) * Math.cos(y * 0.2 - time) + 1) * 5;
+          const finalRadius = dynamicRadius + noise;
+          
+          // Check if pixel is within blob
+          if (distance < finalRadius) {
+            ctx.fillStyle = `rgba(${color}, 1)`;
+            ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize - 1, pixelSize - 1);
+          }
+        }
+      }
+      
+      animationRef.current = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [letter, index, color]);
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      className={styles.letterBlob}
+    />
+  );
+}
 
 function GameTitleScreen({ 
   title,
   backgroundColor = 'transparent',
+  blobColor = '255, 255, 255', // RGB values as string
   className = ''
 }) {
   return (
@@ -22,10 +128,12 @@ function GameTitleScreen({
           <span 
             key={index} 
             style={{ 
-              animationDelay: `${index * 0.1}s`
+              animationDelay: `${index * 0.1}s`,
+              position: 'relative'
             }}
           >
-            {letter === ' ' ? '\u00A0' : letter}
+            {letter !== ' ' && <LetterBlob letter={letter} index={index} color={blobColor} />}
+            <span className={styles.letterText}>{letter === ' ' ? '\u00A0' : letter}</span>
           </span>
         ))}
       </h1>
