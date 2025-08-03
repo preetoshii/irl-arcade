@@ -16,7 +16,7 @@ import PixelParticles from '../components/PixelParticles/PixelParticles';
 import useScrollColorInterpolation from '../hooks/useScrollColorInterpolation';
 import styles from './GameSelector.module.css';
 
-function GameSelector({ onGameSelect, analyser }) {
+function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const games = gameRegistry.getAllGames();
   const [currentIndex, setCurrentIndex] = useState(0); // Current game in original array
   const [isStarting, setIsStarting] = useState(false);
@@ -53,6 +53,13 @@ function GameSelector({ onGameSelect, analyser }) {
   
   // Get interpolated color based on scroll position
   const interpolatedColor = useScrollColorInterpolation(carouselRef, orderedGames);
+  
+  // Pass color up to parent
+  useEffect(() => {
+    if (onColorChange) {
+      onColorChange(interpolatedColor);
+    }
+  }, [interpolatedColor, onColorChange]);
 
   // Handle scroll to detect current game
   useEffect(() => {
