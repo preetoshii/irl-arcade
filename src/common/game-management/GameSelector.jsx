@@ -199,10 +199,17 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     const carousel = carouselRef.current;
     if (!carousel) return;
     
-    // Play sweep sound for navigation
-    const audio = new Audio('/sounds/sweep.wav');
-    audio.volume = 0.3;
-    audio.play().catch(err => console.log('Sweep sound failed:', err));
+    // Play click sound immediately
+    const clickAudio = new Audio('/sounds/click.wav');
+    clickAudio.volume = 0.3;
+    clickAudio.play().catch(err => console.log('Click sound failed:', err));
+    
+    // Play sweep sound after a tiny delay
+    setTimeout(() => {
+      const sweepAudio = new Audio('/sounds/sweep.wav');
+      sweepAudio.volume = 0.3;
+      sweepAudio.play().catch(err => console.log('Sweep sound failed:', err));
+    }, 50); // 50ms delay
     
     // Disable automatic sweep sound for this navigation
     hasPlayedSweepRef.current = true;
