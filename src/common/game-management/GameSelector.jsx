@@ -242,17 +242,18 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
                 backgroundColor: 'transparent'
               }}
               whileHover={{ 
-                scale: 1.05,
-                backgroundColor: `rgb(${interpolatedColor})`,
-                color: '#000'
+                scale: 1.1,
+                backgroundColor: '#fff',
+                color: '#000',
+                borderColor: '#fff'
               }}
               whileTap={{ scale: 0.95 }}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ 
-                scale: { duration: 0.1 },
-                backgroundColor: { duration: 0.1 },
-                color: { duration: 0.1 },
+                type: "spring",
+                stiffness: 400,
+                damping: 17,
                 default: { delay: 0.5 }
               }}
             >
