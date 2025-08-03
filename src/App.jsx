@@ -106,7 +106,13 @@ function App() {
 
   const handleGameSelect = (gameId) => {
     console.log(`Selected game: ${gameId}`);
-    setSelectedGame(gameId);
+    
+    // For Simon Says, go directly to debug page
+    if (gameId === 'simon-says') {
+      setShowDebug(true);
+    } else {
+      setSelectedGame(gameId);
+    }
   };
 
   const handleExitGame = () => {
@@ -194,30 +200,6 @@ function App() {
                 </>
               )}
             </svg>
-          </button>
-          
-          {/* Debug button - small and unobtrusive */}
-          <button 
-            onClick={() => setShowDebug(true)}
-            style={{
-              position: 'fixed',
-              bottom: '20px',
-              right: '20px',
-              background: '#333',
-              color: '#0f0',
-              border: '1px solid #0f0',
-              padding: '8px 16px',
-              fontSize: '12px',
-              fontFamily: 'JetBrains Mono, monospace',
-              cursor: 'pointer',
-              opacity: 0.7,
-              transition: 'opacity 0.2s',
-              zIndex: 10000
-            }}
-            onMouseEnter={(e) => e.target.style.opacity = '1'}
-            onMouseLeave={(e) => e.target.style.opacity = '0.7'}
-          >
-            Debug Simon Says
           </button>
         </motion.div>
       ) : (
