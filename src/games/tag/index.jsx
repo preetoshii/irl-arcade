@@ -30,7 +30,6 @@ function TagGame({ mode = 'title', isActive, onExit }) {
       title="AUDIO TAG"
       icon="🏃‍♂️"
       stats={['3-50 Players', '•', 'Free for All']}
-      backgroundColor="#0000ff"
     />
   );
 

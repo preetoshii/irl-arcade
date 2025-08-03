@@ -9,7 +9,6 @@ function SexyMama({ onExit }) {
     return (
       <GameTitleScreen
         title={config.name}
-        backgroundColor="#FF1493"
       />
     );
   }
@@ -17,7 +16,7 @@ function SexyMama({ onExit }) {
   // Game content will go here
   return (
     <div style={{ 
-      backgroundColor: '#FF1493', 
+ 
       color: '#fff',
       height: '100vh',
       display: 'flex',

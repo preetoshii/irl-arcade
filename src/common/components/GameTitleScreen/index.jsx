@@ -9,7 +9,7 @@ import styles from './GameTitleScreen.module.css';
 
 function GameTitleScreen({ 
   title,
-  backgroundColor = '#000',
+  backgroundColor = 'transparent',
   className = ''
 }) {
   return (

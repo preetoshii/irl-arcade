@@ -104,7 +104,7 @@ function App() {
               height: '48px',
               cursor: 'pointer',
               transition: 'all 0.2s',
-              zIndex: 1000,
+              zIndex: 10000,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -163,7 +163,7 @@ function App() {
               cursor: 'pointer',
               opacity: 0.7,
               transition: 'opacity 0.2s',
-              zIndex: 1000
+              zIndex: 10000
             }}
             onMouseEnter={(e) => e.target.style.opacity = '1'}
             onMouseLeave={(e) => e.target.style.opacity = '0.7'}
