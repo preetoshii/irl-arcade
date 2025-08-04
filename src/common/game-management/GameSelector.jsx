@@ -22,6 +22,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const [isStarting, setIsStarting] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const [activeGameInfo, setActiveGameInfo] = useState(null);
+  const [targetGameInfo, setTargetGameInfo] = useState(null);
   const carouselRef = useRef(null);
   const isJumpingRef = useRef(false);
   const scrollTimeoutRef = useRef(null);
@@ -32,7 +33,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const isProgrammaticScrollRef = useRef(false);
   const lastAnnouncedGameRef = useRef(null);
   
-  // Load voices on mount
+  // Load voices on mount and set initial game info
   useEffect(() => {
     // Voices might not be loaded immediately
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
@@ -42,6 +43,11 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     }
     // Also try to load them immediately
     window.speechSynthesis.getVoices();
+    
+    // Set initial game info
+    if (games.length > 0 && !targetGameInfo) {
+      setTargetGameInfo(games[currentIndex]);
+    }
   }, []);
 
   // Get the order of games with current game in the middle
@@ -106,8 +112,10 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
           const targetGameIndex = (currentIndex + direction + games.length) % games.length;
           const targetGame = games[targetGameIndex];
           
-          // Announce target game by name
+          // Announce target game and show its description
           if (targetGame) {
+            setTargetGameInfo(targetGame);
+            
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(targetGame.name);
             
@@ -255,6 +263,8 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     const targetGame = games[targetGameIndex];
     
     if (targetGame) {
+      setTargetGameInfo(targetGame);
+      
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(targetGame.name);
       
@@ -397,19 +407,19 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Game description - only show when not scrolling */}
+            {/* Game description - show target game when scrolling, active when not */}
             <AnimatePresence mode="wait">
-              {!isScrolling && (
+              {(targetGameInfo || activeGameInfo) && (
                 <motion.div 
                   className={styles.gameDescriptionOverlay}
-                  key={activeGameInfo?.id}
+                  key={(targetGameInfo || activeGameInfo)?.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                   style={{ color: `rgb(${interpolatedColor})` }}
                 >
-                  <p>{activeGameInfo?.description}</p>
+                  <p>{(targetGameInfo || activeGameInfo)?.description}</p>
                 </motion.div>
               )}
             </AnimatePresence>
