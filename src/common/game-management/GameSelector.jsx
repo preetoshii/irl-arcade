@@ -31,6 +31,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const swipeStartedRef = useRef(false);
   const lastScrollTimeRef = useRef(Date.now());
   const isProgrammaticScrollRef = useRef(false);
+  const lastAnnouncedGameRef = useRef(null);
 
   // Get the order of games with current game in the middle
   const getGameOrder = () => {
@@ -155,6 +156,8 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
         // Set scrolling to false after we've settled
         scrollTimeoutRef.current = setTimeout(() => {
           setIsScrolling(false);
+          // Reset for next navigation
+          lastAnnouncedGameRef.current = null;
         }, 100);
       }, 150); // Wait 150ms after scroll stops
     };
@@ -182,7 +185,15 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     if (targetGameIndex === null || !orderedGames[targetGameIndex]) return;
     
     const targetGame = orderedGames[targetGameIndex];
+    
+    // Only speak if it's a different game than last announced
+    if (lastAnnouncedGameRef.current === targetGame.id) return;
+    
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
     const utterance = new SpeechSynthesisUtterance(targetGame.name);
+    lastAnnouncedGameRef.current = targetGame.id;
     
     // Use American male voice - filter out female voices
     const voices = window.speechSynthesis.getVoices();
