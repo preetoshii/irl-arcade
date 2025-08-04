@@ -31,6 +31,18 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const lastScrollTimeRef = useRef(Date.now());
   const isProgrammaticScrollRef = useRef(false);
   const lastAnnouncedGameRef = useRef(null);
+  
+  // Load voices on mount
+  useEffect(() => {
+    // Voices might not be loaded immediately
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+    // Also try to load them immediately
+    window.speechSynthesis.getVoices();
+  }, []);
 
   // Get the order of games with current game in the middle
   const getGameOrder = () => {
@@ -98,6 +110,32 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
           if (targetGame) {
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(targetGame.name);
+            
+            // Use American male voice - filter out female voices
+            const voices = window.speechSynthesis.getVoices();
+            const americanMaleVoice = voices.find(voice => {
+              const name = voice.name.toLowerCase();
+              const lang = voice.lang.toLowerCase();
+              
+              // Must be English
+              if (!lang.includes('en')) return false;
+              
+              // Exclude female voices
+              if (name.includes('female') || name.includes('samantha') || 
+                  name.includes('victoria') || name.includes('karen') || 
+                  name.includes('moira') || name.includes('fiona') ||
+                  name.includes('tessa') || name.includes('zira')) return false;
+              
+              // Prefer known male voices
+              return name.includes('alex') || name.includes('fred') || 
+                     name.includes('bruce') || name.includes('male') ||
+                     name.includes('david') || name.includes('mark');
+            });
+            
+            if (americanMaleVoice) {
+              utterance.voice = americanMaleVoice;
+            }
+            
             utterance.pitch = 0.8;
             utterance.rate = 0.95;
             window.speechSynthesis.speak(utterance);
@@ -219,6 +257,32 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     if (targetGame) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(targetGame.name);
+      
+      // Use American male voice - filter out female voices
+      const voices = window.speechSynthesis.getVoices();
+      const americanMaleVoice = voices.find(voice => {
+        const name = voice.name.toLowerCase();
+        const lang = voice.lang.toLowerCase();
+        
+        // Must be English
+        if (!lang.includes('en')) return false;
+        
+        // Exclude female voices
+        if (name.includes('female') || name.includes('samantha') || 
+            name.includes('victoria') || name.includes('karen') || 
+            name.includes('moira') || name.includes('fiona') ||
+            name.includes('tessa') || name.includes('zira')) return false;
+        
+        // Prefer known male voices
+        return name.includes('alex') || name.includes('fred') || 
+               name.includes('bruce') || name.includes('male') ||
+               name.includes('david') || name.includes('mark');
+      });
+      
+      if (americanMaleVoice) {
+        utterance.voice = americanMaleVoice;
+      }
+      
       utterance.pitch = 0.8;
       utterance.rate = 0.95;
       window.speechSynthesis.speak(utterance);
