@@ -27,7 +27,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const scrollTimeoutRef = useRef(null);
   const isRecentering = useRef(false);
   const lastScrollPosRef = useRef(null);
-  const isScrollingRef = useRef(false);
+  const swipeStartedRef = useRef(false);
   const lastScrollTimeRef = useRef(Date.now());
 
   // Get the order of games with current game in the middle
@@ -81,25 +81,25 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
       const scrollLeft = carousel.scrollLeft;
       const currentSlide = Math.round(scrollLeft / slideWidth);
       
-      // Calculate scroll velocity for sweep sound
+      // Detect start of new swipe for sweep sound
       if (lastScrollPosRef.current !== null) {
         const movement = Math.abs(scrollLeft - lastScrollPosRef.current);
         const currentTime = Date.now();
         const timeDelta = currentTime - lastScrollTimeRef.current;
         const velocity = timeDelta > 0 ? movement / timeDelta : 0;
         
-        // Play sweep sound only for fast movements (velocity threshold)
-        // Velocity > 0.5 pixels/ms is a reasonably fast swipe
-        if (!isScrollingRef.current && movement > 5 && velocity > 0.5) {
+        // Detect if this is a new swipe starting
+        if (!swipeStartedRef.current && movement > 5 && velocity > 0.5) {
+          // Play sweep sound once at the start of swipe
           const audio = new Audio('/sounds/sweep.wav');
           audio.volume = 0.3;
           audio.play().catch(err => console.log('Sweep sound failed:', err));
-          isScrollingRef.current = true;
-          
-          // Reset flag quickly for rapid swipes (300ms)
-          setTimeout(() => {
-            isScrollingRef.current = false;
-          }, 300);
+          swipeStartedRef.current = true;
+        }
+        
+        // Reset swipe flag if movement stops (velocity drops)
+        if (velocity < 0.1 && swipeStartedRef.current) {
+          swipeStartedRef.current = false;
         }
         
         lastScrollTimeRef.current = currentTime;
