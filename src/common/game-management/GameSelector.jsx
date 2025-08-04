@@ -29,6 +29,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const lastScrollPosRef = useRef(null);
   const swipeStartedRef = useRef(false);
   const lastScrollTimeRef = useRef(Date.now());
+  const isProgrammaticScrollRef = useRef(false);
 
   // Get the order of games with current game in the middle
   const getGameOrder = () => {
@@ -82,7 +83,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
       const currentSlide = Math.round(scrollLeft / slideWidth);
       
       // Detect start of new swipe for sweep sound
-      if (lastScrollPosRef.current !== null) {
+      if (lastScrollPosRef.current !== null && !isProgrammaticScrollRef.current) {
         const movement = Math.abs(scrollLeft - lastScrollPosRef.current);
         const currentTime = Date.now();
         const timeDelta = currentTime - lastScrollTimeRef.current;
@@ -124,11 +125,13 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
           
           // Snap back to center position
           requestAnimationFrame(() => {
+            isProgrammaticScrollRef.current = true;
             carousel.scrollLeft = centerIndex * slideWidth;
-            // Reset recentering flag after snap
+            // Reset flags after snap
             setTimeout(() => {
               isRecentering.current = false;
-            }, 50);
+              isProgrammaticScrollRef.current = false;
+            }, 100);
           });
         }
         
@@ -240,10 +243,16 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
       ? currentScroll - slideWidth 
       : currentScroll + slideWidth;
     
+    isProgrammaticScrollRef.current = true;
     carousel.scrollTo({
       left: targetScroll,
       behavior: 'smooth'
     });
+    
+    // Reset flag after scroll animation
+    setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+    }, 500);
   };
 
   if (games.length === 0) {
