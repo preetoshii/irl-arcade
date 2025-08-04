@@ -26,7 +26,7 @@
   height: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  /* Removed scroll-snap for more fluid control */
+  scroll-snap-type: x proximity; /* Changed from mandatory to proximity */
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -41,7 +41,7 @@
   flex: 0 0 100vw;
   width: 100vw;
   height: 100vh;
-  /* Removed scroll-snap-align for fluid scrolling */
+  scroll-snap-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
