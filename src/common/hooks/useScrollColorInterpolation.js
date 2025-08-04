@@ -1,13 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-function useScrollColorInterpolation(carouselRef, games) {
+function useScrollColorInterpolation(carouselRef, games, isRecentering) {
   const [interpolatedColor, setInterpolatedColor] = useState('255, 255, 255');
+  const lastValidColor = useRef('255, 255, 255');
 
   useEffect(() => {
     const carousel = carouselRef.current;
     if (!carousel || games.length === 0) return;
 
     const updateColor = () => {
+      // Skip color updates during recentering to prevent flash
+      if (isRecentering.current) {
+        return;
+      }
+      
       // Get all game slides - look for direct children divs
       const slides = carousel.querySelectorAll(':scope > div');
       const carouselRect = carousel.getBoundingClientRect();
@@ -52,10 +58,14 @@ function useScrollColorInterpolation(carouselRef, games) {
         const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * factor);
         const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * factor);
         
-        setInterpolatedColor(`${r}, ${g}, ${b}`);
+        const newColor = `${r}, ${g}, ${b}`;
+        setInterpolatedColor(newColor);
+        lastValidColor.current = newColor;
       } else if (closestSlide && games[closestSlide.index]) {
         // Just use the closest slide's color
-        setInterpolatedColor(games[closestSlide.index].color || '255, 255, 255');
+        const newColor = games[closestSlide.index].color || '255, 255, 255';
+        setInterpolatedColor(newColor);
+        lastValidColor.current = newColor;
       }
     };
 
@@ -68,7 +78,7 @@ function useScrollColorInterpolation(carouselRef, games) {
     return () => {
       carousel.removeEventListener('scroll', updateColor);
     };
-  }, [carouselRef, games]);
+  }, [carouselRef, games, isRecentering]);
 
   return interpolatedColor;
 }

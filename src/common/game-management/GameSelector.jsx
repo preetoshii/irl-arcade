@@ -27,6 +27,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const scrollTimeoutRef = useRef(null);
   const lastScrollPositionRef = useRef(0);
   const hasPlayedSweepRef = useRef(false);
+  const isRecentering = useRef(false);
 
   // Get the order of games with current game in the middle
   const getGameOrder = () => {
@@ -54,7 +55,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const orderedGames = getGameOrder();
   
   // Get interpolated color based on scroll position
-  const interpolatedColor = useScrollColorInterpolation(carouselRef, orderedGames);
+  const interpolatedColor = useScrollColorInterpolation(carouselRef, orderedGames, isRecentering);
   
   // Pass color up to parent
   useEffect(() => {
@@ -99,12 +100,19 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
         const offset = currentSlide - centerIndex;
         
         if (offset !== 0) {
+          // Mark that we're recentering to prevent color flash
+          isRecentering.current = true;
+          
           // Update the current index and re-center
           setCurrentIndex((prev) => (prev + offset + games.length) % games.length);
           
           // Snap back to center position
           requestAnimationFrame(() => {
             carousel.scrollLeft = centerIndex * slideWidth;
+            // Reset recentering flag after snap
+            setTimeout(() => {
+              isRecentering.current = false;
+            }, 50);
           });
         }
         
