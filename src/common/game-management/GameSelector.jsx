@@ -95,6 +95,11 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
           audio.volume = 0.3;
           audio.play().catch(err => console.log('Sweep sound failed:', err));
           isScrollingRef.current = true;
+          
+          // Reset flag quickly for rapid swipes (300ms)
+          setTimeout(() => {
+            isScrollingRef.current = false;
+          }, 300);
         }
         
         lastScrollTimeRef.current = currentTime;
@@ -130,7 +135,6 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
         // Set scrolling to false after we've settled
         scrollTimeoutRef.current = setTimeout(() => {
           setIsScrolling(false);
-          isScrollingRef.current = false; // Reset for next scroll
         }, 100);
       }, 150); // Wait 150ms after scroll stops
     };
