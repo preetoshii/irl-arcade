@@ -22,6 +22,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const [isStarting, setIsStarting] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const [activeGameInfo, setActiveGameInfo] = useState(null);
+  const [targetGameIndex, setTargetGameIndex] = useState(null);
   const carouselRef = useRef(null);
   const isJumpingRef = useRef(false);
   const scrollTimeoutRef = useRef(null);
@@ -81,6 +82,22 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
       const slideWidth = carousel.offsetWidth;
       const scrollLeft = carousel.scrollLeft;
       const currentSlide = Math.round(scrollLeft / slideWidth);
+      
+      // Detect target game when starting to scroll
+      if (!swipeStartedRef.current && lastScrollPosRef.current !== null) {
+        const movement = scrollLeft - lastScrollPosRef.current;
+        if (Math.abs(movement) > 20) { // Significant movement
+          // Determine direction and target
+          const direction = movement > 0 ? 1 : -1;
+          const targetSlide = currentSlide + (direction > 0 ? Math.ceil(movement / slideWidth) : Math.floor(movement / slideWidth));
+          const targetIndex = Math.max(0, Math.min(orderedGames.length - 1, targetSlide));
+          
+          // Announce target game
+          if (orderedGames[targetIndex]) {
+            setTargetGameIndex(targetIndex);
+          }
+        }
+      }
       
       // Detect start of new swipe for sweep sound
       if (lastScrollPosRef.current !== null && !isProgrammaticScrollRef.current) {
@@ -160,11 +177,12 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
 
 
 
-  // Simple TTS - just speak the game name when it changes
+  // TTS - speak the target game name when scrolling starts
   useEffect(() => {
-    if (!activeGameInfo) return;
+    if (targetGameIndex === null || !orderedGames[targetGameIndex]) return;
     
-    const utterance = new SpeechSynthesisUtterance(activeGameInfo.name);
+    const targetGame = orderedGames[targetGameIndex];
+    const utterance = new SpeechSynthesisUtterance(targetGame.name);
     
     // Use American male voice - filter out female voices
     const voices = window.speechSynthesis.getVoices();
@@ -198,7 +216,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     utterance.rate = 0.95;
     
     window.speechSynthesis.speak(utterance);
-  }, [activeGameInfo]);
+  }, [targetGameIndex, orderedGames]);
 
   const handleStartGame = () => {
     // Play select sound for game selection
@@ -224,6 +242,15 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const handleNavigate = (direction) => {
     const carousel = carouselRef.current;
     if (!carousel) return;
+    
+    // Determine target game index
+    const centerIndex = Math.floor(games.length / 2);
+    const offset = direction === 'left' ? -1 : 1;
+    const newTargetIndex = centerIndex + offset;
+    
+    if (orderedGames[newTargetIndex]) {
+      setTargetGameIndex(newTargetIndex);
+    }
     
     // Play click sound immediately, then sweep sound
     const clickAudio = new Audio('/sounds/click.wav');
