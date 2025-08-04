@@ -28,6 +28,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const lastScrollPositionRef = useRef(0);
   const hasPlayedSweepRef = useRef(false);
   const isRecentering = useRef(false);
+  const scrollDirectionRef = useRef(0);
 
   // Get the order of games with current game in the middle
   const getGameOrder = () => {
@@ -80,9 +81,18 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
       const scrollLeft = carousel.scrollLeft;
       const currentSlide = Math.round(scrollLeft / slideWidth);
       
-      // Play sweep sound when starting to scroll away
-      const scrollDelta = Math.abs(scrollLeft - lastScrollPositionRef.current);
-      if (scrollDelta > slideWidth * 0.1 && !hasPlayedSweepRef.current) {
+      // Detect scroll direction and new swipes
+      const scrollDelta = scrollLeft - lastScrollPositionRef.current;
+      const currentDirection = scrollDelta > 0 ? 1 : scrollDelta < 0 ? -1 : 0;
+      
+      // If direction changed, it's a new swipe
+      if (currentDirection !== 0 && currentDirection !== scrollDirectionRef.current) {
+        hasPlayedSweepRef.current = false;
+        scrollDirectionRef.current = currentDirection;
+      }
+      
+      // Play sweep sound for significant movement
+      if (Math.abs(scrollDelta) > slideWidth * 0.1 && !hasPlayedSweepRef.current) {
         const audio = new Audio('/sounds/sweep.wav');
         audio.volume = 0.3;
         audio.play().catch(err => console.log('Sweep sound failed:', err));
