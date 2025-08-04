@@ -225,12 +225,11 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     const carousel = carouselRef.current;
     if (!carousel) return;
     
-    // Play click sound immediately
+    // Play click sound immediately, then sweep sound
     const clickAudio = new Audio('/sounds/click.wav');
     clickAudio.volume = 0.3;
     clickAudio.play().catch(err => console.log('Click sound failed:', err));
     
-    // Play sweep sound after tiny delay (button navigation is always "fast")
     setTimeout(() => {
       const sweepAudio = new Audio('/sounds/sweep.wav');
       sweepAudio.volume = 0.3;
@@ -249,10 +248,10 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
       behavior: 'smooth'
     });
     
-    // Reset flag after scroll animation
+    // Reset flag after scroll animation completes
     setTimeout(() => {
       isProgrammaticScrollRef.current = false;
-    }, 500);
+    }, 800); // Increased to ensure scroll completes
   };
 
   if (games.length === 0) {
