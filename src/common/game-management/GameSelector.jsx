@@ -368,14 +368,26 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
       <motion.button
         className={styles.navButton}
         onClick={() => handleNavigate('left')}
+        onMouseEnter={handleButtonHover}
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
         style={{ 
           left: '2rem',
           color: `rgb(${interpolatedColor})`,
-          borderColor: `rgb(${interpolatedColor})`
+          borderColor: `rgb(${interpolatedColor})`,
+          backgroundColor: 'transparent'
+        }}
+        whileHover={{ 
+          scale: 1.1,
+          backgroundColor: '#fff',
+          color: '#000',
+          borderColor: '#fff'
+        }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 400,
+          damping: 17
         }}
       >
         ◀
@@ -385,14 +397,26 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
       <motion.button
         className={styles.navButton}
         onClick={() => handleNavigate('right')}
+        onMouseEnter={handleButtonHover}
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
         style={{ 
           right: '2rem',
           color: `rgb(${interpolatedColor})`,
-          borderColor: `rgb(${interpolatedColor})`
+          borderColor: `rgb(${interpolatedColor})`,
+          backgroundColor: 'transparent'
+        }}
+        whileHover={{ 
+          scale: 1.1,
+          backgroundColor: '#fff',
+          color: '#000',
+          borderColor: '#fff'
+        }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 400,
+          damping: 17
         }}
       >
         ▶
