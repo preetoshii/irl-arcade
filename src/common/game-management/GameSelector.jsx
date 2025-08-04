@@ -28,6 +28,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const isRecentering = useRef(false);
   const lastScrollPosRef = useRef(null);
   const isScrollingRef = useRef(false);
+  const lastScrollTimeRef = useRef(Date.now());
 
   // Get the order of games with current game in the middle
   const getGameOrder = () => {
@@ -80,17 +81,23 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
       const scrollLeft = carousel.scrollLeft;
       const currentSlide = Math.round(scrollLeft / slideWidth);
       
-      // Play sweep sound when starting to scroll
+      // Calculate scroll velocity for sweep sound
       if (lastScrollPosRef.current !== null) {
         const movement = Math.abs(scrollLeft - lastScrollPosRef.current);
+        const currentTime = Date.now();
+        const timeDelta = currentTime - lastScrollTimeRef.current;
+        const velocity = timeDelta > 0 ? movement / timeDelta : 0;
         
-        // If we weren't scrolling and now we are (movement detected)
-        if (!isScrollingRef.current && movement > 5) {
+        // Play sweep sound only for fast movements (velocity threshold)
+        // Velocity > 0.5 pixels/ms is a reasonably fast swipe
+        if (!isScrollingRef.current && movement > 5 && velocity > 0.5) {
           const audio = new Audio('/sounds/sweep.wav');
           audio.volume = 0.3;
           audio.play().catch(err => console.log('Sweep sound failed:', err));
           isScrollingRef.current = true;
         }
+        
+        lastScrollTimeRef.current = currentTime;
       }
       
       lastScrollPosRef.current = scrollLeft;
@@ -216,7 +223,12 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     clickAudio.volume = 0.3;
     clickAudio.play().catch(err => console.log('Click sound failed:', err));
     
-    // The sweep sound will play automatically via the scroll handler
+    // Play sweep sound after tiny delay (button navigation is always "fast")
+    setTimeout(() => {
+      const sweepAudio = new Audio('/sounds/sweep.wav');
+      sweepAudio.volume = 0.3;
+      sweepAudio.play().catch(err => console.log('Sweep sound failed:', err));
+    }, 50);
     
     const slideWidth = carousel.offsetWidth;
     const currentScroll = carousel.scrollLeft;
