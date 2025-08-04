@@ -26,7 +26,7 @@
   height: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-snap-type: x proximity; /* Changed from mandatory to proximity */
+  scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
