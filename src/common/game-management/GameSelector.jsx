@@ -148,18 +148,22 @@ function GameSelector({ onGameSelect, analyser }) {
   // Unified navigation for buttons and keyboard
   const navigate = useCallback((direction) => {
     const carousel = carouselRef.current;
-    if (!carousel || scrollStateRef.current.isScrolling) return;
+    if (!carousel) return;
     
     // Calculate direction
     const directionValue = direction === 'left' ? -1 : 1;
     
     playClick();
     
-    // Just scroll - let the scroll handler do everything else
+    // Calculate target position based on current scroll position
     const currentScroll = carousel.scrollLeft;
     const slideWidth = carousel.offsetWidth;
+    const currentPosition = Math.round(currentScroll / slideWidth);
+    const targetPosition = currentPosition + directionValue;
+    
+    // Scroll to target position
     carousel.scrollTo({
-      left: currentScroll + (directionValue * slideWidth),
+      left: targetPosition * slideWidth,
       behavior: 'smooth'
     });
   }, [playClick]);
