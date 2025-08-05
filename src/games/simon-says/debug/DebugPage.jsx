@@ -141,7 +141,12 @@ function SimonSaysDebugPage({ onBack }) {
     
     // Block events
     eventBus.on(Events.BLOCK_STARTED, (data) => {
-      addLog(`Block started: ${data.blockType}`, 'info');
+      // Add detailed logging for ceremony blocks
+      if (data.blockType === 'ceremony') {
+        addLog(`Block started: ${data.blockType} (${data.context?.ceremonyType || 'unknown type'})`, 'warning');
+      } else {
+        addLog(`Block started: ${data.blockType}`, 'info');
+      }
       setCurrentBlock(data);
       setCurrentActivity(`Performing ${data.blockType} block`);
       setTimeInBlock(0);
@@ -219,6 +224,12 @@ function SimonSaysDebugPage({ onBack }) {
     // Pattern events
     eventBus.on(Events.PATTERN_SELECTED, (data) => {
       addLog(`Pattern selected: ${data.id} (${data.sequence.length} blocks)`, 'info');
+      // Log the full sequence to debug ceremony duplication
+      const ceremonyCount = data.sequence.filter(block => block.type === 'ceremony').length;
+      if (ceremonyCount > 2) {
+        addLog(`WARNING: Pattern has ${ceremonyCount} ceremony blocks!`, 'error');
+      }
+      addLog(`Pattern sequence: ${data.sequence.map(b => b.type).join(' → ')}`, 'system');
     });
     
     eventBus.on(Events.PATTERN_COMPLETE, () => {

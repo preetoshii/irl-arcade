@@ -38,6 +38,7 @@ class MatchOrchestrator {
     this.currentMatch = null;
     this.systems = {};
     this.isRunning = false;
+    this.eventUnsubscribers = []; // Track event subscriptions for cleanup
   }
 
   /**
@@ -110,9 +111,16 @@ class MatchOrchestrator {
   subscribeToEvents() {
     console.log('[MatchOrchestrator] Subscribing to events, eventBus:', eventBus);
     
+    // Clean up any existing subscriptions first
+    this.unsubscribeFromEvents();
+    
     // Match lifecycle events
-    eventBus.on(Events.MATCH_COMPLETED, () => this.handleMatchComplete());
-    eventBus.on(Events.MATCH_ABANDONED, () => this.handleMatchAbandoned());
+    this.eventUnsubscribers.push(
+      eventBus.on(Events.MATCH_COMPLETED, () => this.handleMatchComplete())
+    );
+    this.eventUnsubscribers.push(
+      eventBus.on(Events.MATCH_ABANDONED, () => this.handleMatchAbandoned())
+    );
     
     // Block events - bind this context
     const blockHandler = async (data) => {
@@ -126,15 +134,34 @@ class MatchOrchestrator {
     this.blockCompletedHandler = blockHandler;
     
     const unsubscribe = eventBus.on(Events.BLOCK_COMPLETED, blockHandler);
+    this.eventUnsubscribers.push(unsubscribe);
     console.log('[MatchOrchestrator] Subscribed to BLOCK_COMPLETED, got unsubscribe function:', typeof unsubscribe);
     console.log('[MatchOrchestrator] Handler registered:', eventBus.listenerCount(Events.BLOCK_COMPLETED));
     
     // Player events
-    eventBus.on(Events.PLAYER_ADDED, (data) => this.handlePlayerAdded(data));
-    eventBus.on(Events.PLAYER_REMOVED, (data) => this.handlePlayerRemoved(data));
+    this.eventUnsubscribers.push(
+      eventBus.on(Events.PLAYER_ADDED, (data) => this.handlePlayerAdded(data))
+    );
+    this.eventUnsubscribers.push(
+      eventBus.on(Events.PLAYER_REMOVED, (data) => this.handlePlayerRemoved(data))
+    );
     
     // Error handling
-    eventBus.on(Events.SYSTEM_ERROR, (data) => this.handleSystemError(data));
+    this.eventUnsubscribers.push(
+      eventBus.on(Events.SYSTEM_ERROR, (data) => this.handleSystemError(data))
+    );
+  }
+
+  /**
+   * Unsubscribe from all events
+   */
+  unsubscribeFromEvents() {
+    this.eventUnsubscribers.forEach(unsubscribe => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    });
+    this.eventUnsubscribers = [];
   }
 
   /**
@@ -230,19 +257,17 @@ class MatchOrchestrator {
         return;
       }
       
-      // Process based on block type (don't confirm until successful)
+      // Confirm block start BEFORE processing to advance the index
+      // This prevents duplicate blocks when BLOCK_COMPLETED triggers processNextBlock
+      this.systems.block.confirmBlockStart(blockInfo.type);
+      
+      // Process based on block type
       if (blockInfo.type === BlockType.CEREMONY) {
         await this.processCeremonyBlock(blockInfo);
-        // Only confirm after successful processing
-        this.systems.block.confirmBlockStart(blockInfo.type);
       } else if (blockInfo.type === BlockType.ROUND) {
         await this.processRoundBlock(blockInfo);
-        // Only confirm after successful processing
-        this.systems.block.confirmBlockStart(blockInfo.type);
       } else if (blockInfo.type === BlockType.RELAX) {
         await this.processRelaxBlock(blockInfo);
-        // Only confirm after successful processing
-        this.systems.block.confirmBlockStart(blockInfo.type);
       }
       
     } catch (error) {
@@ -677,6 +702,15 @@ class MatchOrchestrator {
    */
   getVisualization() {
     return this.systems.block.getPatternVisualization();
+  }
+
+  /**
+   * Cleanup resources
+   */
+  destroy() {
+    this.unsubscribeFromEvents();
+    this.resetState();
+    this.initialized = false;
   }
 }
 
