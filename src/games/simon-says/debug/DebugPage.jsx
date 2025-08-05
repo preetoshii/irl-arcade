@@ -43,7 +43,6 @@ function SimonSaysDebugPage({ onBack }) {
   const [activeCountdowns, setActiveCountdowns] = useState([]); // Track active countdowns
   const [lastPlayExpanded, setLastPlayExpanded] = useState(false); // Collapsible state
   
-  const logsEndRef = useRef(null);
   const maxLogs = 50;
   const initRef = useRef(false);
   const unsubscribers = useRef([]);
@@ -69,10 +68,7 @@ function SimonSaysDebugPage({ onBack }) {
     };
   }, []);
 
-  // Auto-scroll logs
-  useEffect(() => {
-    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [logs]);
+  // Removed auto-scroll - it was annoying when trying to read other sections
 
   // Update timer
   useEffect(() => {
@@ -548,7 +544,6 @@ function SimonSaysDebugPage({ onBack }) {
                 <span>{log.message}</span>
               </div>
             ))}
-            <div ref={logsEndRef} />
           </div>
         </div>
 
