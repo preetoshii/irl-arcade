@@ -32,8 +32,6 @@ function SimonSaysGame({ mode = 'title', isActive, onExit, analyser }) {
       stats={['2-100 Players', '•', 'Team Game']}
       blobColor="255, 102, 0"  // Orange-red
       analyser={analyser}
-      show3DModel={true}
-      modelType="simon-says-fbx"
       isActive={isActive}
     />
   );

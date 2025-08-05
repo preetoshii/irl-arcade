@@ -14,6 +14,7 @@ import gameRegistry from './GameRegistry';
 import CarouselSlide from './CarouselSlide';
 import ParticleStarfield from '../components/ParticleStarfield';
 import NavigationButton from '../components/NavigationButton';
+import WireframeModel from '../components/WireframeModel';
 import { useThemeColor, useThemeController } from '../contexts/ThemeContext';
 import useSound from '../hooks/useSound';
 import useRhythm from '../hooks/useRhythm';
@@ -251,10 +252,34 @@ function GameSelector({ onGameSelect, analyser }) {
     );
   }
 
+  // Get the current game's model type
+  const currentGameModel = games[targetIndex]?.id === 'tag' ? 'running-fbx' :
+                          games[targetIndex]?.id === 'sexy-mama' ? 'sexy-mama-fbx' :
+                          games[targetIndex]?.id === 'simon-says' ? 'simon-says-fbx' :
+                          'running-man';
+
   return (
     <div className={styles.selectorContainer}>
       {/* Background starfield */}
       <ParticleStarfield color={themeColor} />
+      
+      {/* Fixed 3D model in background */}
+      <AnimatePresence mode="wait">
+        <motion.div 
+          key={currentGameModel}
+          className={styles.backgroundModel}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.3 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <WireframeModel 
+            color={themeColor}
+            modelType={currentGameModel}
+            size={800}
+          />
+        </motion.div>
+      </AnimatePresence>
       
       {/* Game carousel with clone slides for wrapping */}
       <div 

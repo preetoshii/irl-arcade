@@ -7,7 +7,6 @@
 
 import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import WireframeModel from '../WireframeModel';
 import { useThemeColor } from '../../contexts/ThemeContext';
 import styles from './GameTitleScreen.module.css';
 
@@ -158,20 +157,6 @@ function GameTitleScreen({
       className={`${styles.titleScreen} ${className}`}
       style={{ backgroundColor }}
     >
-      {show3DModel && (
-        <motion.div 
-          className={styles.modelContainer}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-        >
-          <WireframeModel 
-            color={themeColor}
-            modelType={modelType}
-            size={1200}
-          />
-        </motion.div>
-      )}
       
       <h1 className={styles.gameTitle}>
         {title.split('').map((letter, index) => (

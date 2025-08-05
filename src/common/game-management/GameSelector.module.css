@@ -19,6 +19,17 @@
   background: #000;
 }
 
+/* Background 3D model */
+.backgroundModel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
 /* Horizontal scrolling carousel */
 .carousel {
   display: flex;

@@ -11,8 +11,6 @@ function SexyMama({ mode = 'title', isActive, onExit, analyser }) {
         title={config.name}
         blobColor="255, 20, 147"  // Deep pink
         analyser={analyser}
-        show3DModel={true}
-        modelType="sexy-mama-fbx"
         isActive={isActive}
       />
     );
