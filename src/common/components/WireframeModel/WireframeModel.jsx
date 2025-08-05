@@ -14,10 +14,8 @@ function FBXModel({ color = 'white', modelPath }) {
   // Apply wireframe material to all meshes
   useEffect(() => {
     if (fbx) {
-      console.log('Applying color to FBX:', color, modelPath);
       fbx.traverse((child) => {
         if (child.isMesh) {
-          console.log('Mesh found:', child.name);
           // Use a simpler geometry to reduce wireframe density
           const geometry = child.geometry;
           
@@ -34,6 +32,18 @@ function FBXModel({ color = 'white', modelPath }) {
       });
     }
   }, [fbx, color, modelPath]);
+  
+  // Update color when it changes
+  useEffect(() => {
+    if (fbx) {
+      fbx.traverse((child) => {
+        if (child.isMesh && child.material) {
+          child.material.color = new THREE.Color(color);
+          child.material.needsUpdate = true;
+        }
+      });
+    }
+  }, [color, fbx]);
   
   // Animate using useFrame instead of separate animation loop
   const mixerRef = useRef(null);
