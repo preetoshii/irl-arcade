@@ -16,7 +16,6 @@ import PixelParticles from '../components/PixelParticles/PixelParticles';
 import NavigationButton from '../components/NavigationButton';
 import { useThemeColor, useThemeController } from '../contexts/ThemeContext';
 import useSound from '../hooks/useSound';
-import useTTS from '../hooks/useTTS';
 import styles from './GameSelector.module.css';
 
 function GameSelector({ onGameSelect, analyser }) {
@@ -35,11 +34,11 @@ function GameSelector({ onGameSelect, analyser }) {
   
   // Custom hooks
   const { playHover, playClick, playSwipe, playSelect } = useSound();
-  const { speak } = useTTS();
   
   // Theme context
   const themeColor = useThemeColor();
   const setThemeColor = useThemeController();
+  
   
   // Helper to get normalized game index (handles wrapping)
   const normalizeIndex = (index) => {
@@ -54,13 +53,12 @@ function GameSelector({ onGameSelect, analyser }) {
     const handleScroll = () => {
       const scrollLeft = carousel.scrollLeft;
       const slideWidth = carousel.offsetWidth;
-      const position = scrollLeft / slideWidth - 1; // -1 because of clone at start
+      const position = scrollLeft / slideWidth; // Raw position including clones
       
       // Update color interpolation based on exact position
-      const exactPosition = position + 1; // Account for clone
-      const index1 = Math.floor(exactPosition);
-      const index2 = Math.ceil(exactPosition);
-      const fraction = exactPosition - index1;
+      const index1 = Math.floor(position);
+      const index2 = Math.ceil(position);
+      const fraction = position - index1;
       
       // Get games for interpolation (handling clones)
       let game1, game2;
@@ -95,27 +93,20 @@ function GameSelector({ onGameSelect, analyser }) {
         setThemeColor(`${r}, ${g}, ${b}`);
       }
       
-      // Detect intent and trigger actions
-      const rawTarget = Math.round(position);
-      const progress = position - Math.floor(position);
-      const normalizedTarget = normalizeIndex(rawTarget);
+      // Detect intent - which game are we heading toward?
+      const gamePosition = position - 1; // Adjust for clone at start
+      const nearestGameIndex = Math.round(gamePosition);
+      const targetGameIndex = normalizeIndex(nearestGameIndex);
       
-      // Announce when crossing 30% threshold toward new game
-      if (progress > 0.3 && progress < 0.7 && 
-          normalizedTarget !== targetIndex && 
-          !scrollStateRef.current.hasAnnounced) {
-        
-        setTargetIndex(normalizedTarget);
-        const targetGame = games[normalizedTarget];
-        
-        // Immediate feedback
-        speak(targetGame.name);
+      // Detect when target changes
+      if (targetGameIndex !== targetIndex && !scrollStateRef.current.hasAnnounced) {
+        setTargetIndex(targetGameIndex);
         playSwipe();
-        
         scrollStateRef.current.hasAnnounced = true;
       }
       
       // Reset announcement flag when settling
+      const progress = gamePosition - Math.floor(gamePosition);
       if (progress < 0.1 || progress > 0.9) {
         scrollStateRef.current.hasAnnounced = false;
       }
@@ -152,36 +143,40 @@ function GameSelector({ onGameSelect, analyser }) {
       carousel.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollStateRef.current.scrollTimeout);
     };
-  }, [games, targetIndex, setThemeColor, speak, playSwipe]);
+  }, [games, targetIndex, setThemeColor, playSwipe]);
 
   // Unified navigation for buttons and keyboard
   const navigate = useCallback((direction) => {
     const carousel = carouselRef.current;
     if (!carousel || scrollStateRef.current.isScrolling) return;
     
-    // Calculate new target
+    // Calculate direction
     const directionValue = direction === 'left' ? -1 : 1;
-    const newTarget = normalizeIndex(targetIndex + directionValue);
     
-    // Update target and trigger immediate feedback
-    setTargetIndex(newTarget);
-    const targetGame = games[newTarget];
-    
-    speak(targetGame.name);
     playClick();
-    setTimeout(() => playSwipe(), 50);
     
-    // Prevent duplicate announcements from scroll handler
-    scrollStateRef.current.hasAnnounced = true;
-    
-    // Scroll to new position
+    // Just scroll - let the scroll handler do everything else
     const currentScroll = carousel.scrollLeft;
     const slideWidth = carousel.offsetWidth;
     carousel.scrollTo({
       left: currentScroll + (directionValue * slideWidth),
       behavior: 'smooth'
     });
-  }, [targetIndex, games, speak, playClick, playSwipe, normalizeIndex]);
+  }, [playClick]);
+
+  // Watch for target changes and speak game name
+  useEffect(() => {
+    if (games.length === 0) return;
+    
+    const targetGame = games[targetIndex];
+    if (targetGame) {
+      // Simple TTS
+      const utterance = new SpeechSynthesisUtterance(targetGame.name);
+      utterance.pitch = 0.8;
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+  }, [targetIndex, games]);
 
   // Initialize carousel position to first real game (skip clone)
   useEffect(() => {
@@ -191,6 +186,7 @@ function GameSelector({ onGameSelect, analyser }) {
     // Position at first real game (index 1 because of clone at start)
     carousel.scrollLeft = carousel.offsetWidth;
   }, [games.length]);
+  
 
   const handleStartGame = useCallback(() => {
     const currentGame = games[targetIndex];
