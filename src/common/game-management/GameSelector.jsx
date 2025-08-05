@@ -102,7 +102,9 @@ function GameSelector({ onGameSelect, analyser }) {
         const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * fraction);
         const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * fraction);
         
-        setThemeColor(`${r}, ${g}, ${b}`);
+        const interpolatedColor = `${r}, ${g}, ${b}`;
+        setThemeColor(interpolatedColor);
+        setModelColor(interpolatedColor);
       }
       
       // Detect intent - which game are we heading toward?
@@ -115,12 +117,6 @@ function GameSelector({ onGameSelect, analyser }) {
         setTargetIndex(targetGameIndex);
         playSwipe();
         scrollStateRef.current.hasAnnounced = true;
-        
-        // Update model color when arriving at a new game
-        const targetGame = games[targetGameIndex];
-        if (targetGame && targetGame.color) {
-          setModelColor(targetGame.color);
-        }
       }
       
       // Reset announcement flag when settling

@@ -191,6 +191,10 @@ function PixelatedCanvas({ children, size, color }) {
   const [isReady, setIsReady] = useState(false);
   const animationFrameRef = useRef(null);
   const frameCountRef = useRef(0);
+  const colorRef = useRef(color);
+  
+  // Update color ref when prop changes
+  colorRef.current = color;
   
   useEffect(() => {
     if (!canvasRef.current || !pixelCanvasRef.current) return;
@@ -220,10 +224,6 @@ function PixelatedCanvas({ children, size, color }) {
       willReadFrequently: true,
       alpha: true
     });
-    
-    // Store color in a ref so the animation loop always has the latest value
-    const colorRef = useRef(color);
-    colorRef.current = color;
     
     const animate = () => {
       frameCountRef.current++;
@@ -283,7 +283,7 @@ function PixelatedCanvas({ children, size, color }) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [size, color]);
+  }, [size]);
   
   return (
     <>
