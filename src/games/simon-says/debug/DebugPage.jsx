@@ -466,11 +466,11 @@ function SimonSaysDebugPage({ onBack }) {
           </div>
 
           {/* Active Countdowns */}
-          {activeCountdowns.length > 0 && (
-            <div className={styles.section}>
-              <h2>Active Timers</h2>
-              <div className={styles.countdownList}>
-                {activeCountdowns.map(countdown => {
+          <div className={styles.section}>
+            <h2>Active Timers</h2>
+            <div className={styles.countdownList}>
+              {activeCountdowns.length > 0 ? (
+                activeCountdowns.map(countdown => {
                   const progress = (countdown.duration - countdown.remaining) / countdown.duration;
                   const percentage = Math.round(progress * 100);
                   
@@ -499,10 +499,14 @@ function SimonSaysDebugPage({ onBack }) {
                       </div>
                     </div>
                   );
-                })}
-              </div>
+                })
+              ) : (
+                <div className={styles.noTimers}>
+                  No active timers
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Players */}
           <div className={styles.section}>

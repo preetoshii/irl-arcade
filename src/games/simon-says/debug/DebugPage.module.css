@@ -246,6 +246,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 60px; /* Ensure consistent height */
 }
 
 .countdown {
@@ -290,6 +291,16 @@
   transition: width 0.05s linear;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.noTimers {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 20px;
+  background: #2a2a2a;
+  border: 1px solid #333;
+  border-radius: 4px;
 }
 
 /* Last Play Section - Collapsible */
