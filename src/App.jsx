@@ -77,7 +77,7 @@ function AppContent() {
       if (musicEnabled && !selectedGame && !showDebug) {
         // On main menu with music enabled - play music
         audioRef.current.play().catch(err => {
-          console.log('Menu music play prevented:', err);
+          // Menu music play prevented: err
         });
       } else {
         // In game, debug, or music disabled - pause music
@@ -110,7 +110,7 @@ function AppContent() {
           audioContext.resume();
         }
         
-        console.log('Audio context created:', { audioContext, analyser: newAnalyser, state: audioContext.state });
+        // Audio context created
       } else {
         // Audio context exists but analyser was cleared - recreate analyser
         const existingAnalyser = audioContextRef.current.createAnalyser();
@@ -137,7 +137,7 @@ function AppContent() {
   };
 
   const handleGameSelect = (gameId) => {
-    console.log(`Selected game: ${gameId}`);
+    // Selected game: ${gameId}
     
     // For Simon Says, go directly to debug page
     if (gameId === 'simon-says') {

@@ -73,7 +73,7 @@ class PerformanceSystem {
           this.voice = this.selectBestVoice(voices);
           this.settings.voice = this.voice;
           
-          console.log('[PerformanceSystem] Selected voice:', this.voice?.name);
+          // Selected voice: this.voice?.name
           resolve(voices);
         } else {
           // Retry after a short delay
@@ -340,7 +340,7 @@ class PerformanceSystem {
   async speakSegment(text) {
     if (!text.trim()) return;
     
-    console.log('[PerformanceSystem] Speaking:', text);
+    // Speaking: text
     eventBus.emit(Events.SCRIPT_STARTED, { text });
     
     if (this.mockMode || configLoader.get('system.mockTTS')) {
@@ -498,7 +498,7 @@ class PerformanceSystem {
     // Clear queue
     this.performanceQueue = [];
     
-    console.log('[PerformanceSystem] Performance interrupted');
+    // Performance interrupted
   }
 
   /**
@@ -528,7 +528,7 @@ class PerformanceSystem {
   async testVoice(text = "Hello! I'm Simon, and I'll be your host today!") {
     // First, ensure speech synthesis is primed
     if (!this.primed) {
-      console.log('[PerformanceSystem] Priming speech synthesis...');
+      // Priming speech synthesis...
       await this.primeSpeechSynthesis();
     }
     
@@ -550,14 +550,14 @@ class PerformanceSystem {
       
       // Add timeout to prevent hanging
       const timeout = setTimeout(() => {
-        console.log('[PerformanceSystem] Priming timeout - marking as primed anyway');
+        // Priming timeout - marking as primed anyway
         this.primed = true;
         resolve();
       }, 2000);
       
       utterance.onend = () => {
         clearTimeout(timeout);
-        console.log('[PerformanceSystem] Speech synthesis primed');
+        // Speech synthesis primed
         this.primed = true;
         resolve();
       };
@@ -578,7 +578,7 @@ class PerformanceSystem {
    */
   setMockMode(enabled) {
     this.mockMode = enabled;
-    console.log(`[PerformanceSystem] Mock mode ${enabled ? 'enabled' : 'disabled'}`);
+    // Mock mode ${enabled ? 'enabled' : 'disabled'}
   }
 }
 

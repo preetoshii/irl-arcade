@@ -27,7 +27,7 @@ class TTSService {
     
     // Initialize ElevenLabs if API key is available
     if (ELEVENLABS_API_KEY) {
-      console.log('[TTSService] ElevenLabs API key found, initializing client...');
+      // ElevenLabs API key found, initializing client
       this.elevenLabsClient = new ElevenLabsClient({
         apiKey: ELEVENLABS_API_KEY
       });
@@ -36,8 +36,7 @@ class TTSService {
       this.provider = 'webspeech';
     }
     
-    console.log(`[TTSService] Initialized with provider: ${this.provider}`);
-    console.log(`[TTSService] ElevenLabs client:`, this.elevenLabsClient ? 'initialized' : 'not initialized');
+    // Initialized with provider: ${this.provider}
     
     // Load cache index from localStorage
     this.loadCacheIndex();
@@ -51,10 +50,46 @@ class TTSService {
       const cacheIndex = localStorage.getItem(this.cacheIndexKey);
       if (cacheIndex) {
         const index = JSON.parse(cacheIndex);
-        console.log(`[TTSService] Loaded ${index.length} cached items from localStorage`);
+        // Loaded ${index.length} cached items from localStorage
+      } else {
+        // No cache found, try to load preload data
+        this.loadPreloadCache();
       }
     } catch (error) {
       console.error('[TTSService] Error loading cache index:', error);
+    }
+  }
+  
+  /**
+   * Load preloaded cache data if available
+   */
+  async loadPreloadCache() {
+    try {
+      // Check if we already have cache
+      if (localStorage.getItem(this.cacheIndexKey)) {
+        return; // Already have cache, don't overwrite
+      }
+      
+      // Try to load preload data
+      const response = await fetch('/tts-cache-preload.json');
+      if (!response.ok) return;
+      
+      const preloadData = await response.json();
+      // Loading preloaded cache entries
+      
+      // Load all cache entries
+      Object.entries(preloadData.cache).forEach(([key, value]) => {
+        try {
+          localStorage.setItem(key, value);
+        } catch (e) {
+          console.warn('[TTSService] Failed to preload entry:', key);
+        }
+      });
+      
+      // Preload cache loaded successfully
+    } catch (error) {
+      // Preload is optional, so we just log and continue
+      // No preload cache available
     }
   }
   
@@ -74,7 +109,7 @@ class TTSService {
     }
     
     this.provider = provider;
-    console.log(`[TTSService] Switched to provider: ${provider}`);
+    // Switched to provider: ${provider}
   }
   
   /**
@@ -86,7 +121,7 @@ class TTSService {
   async speak(text, pitch = 1, rate = 1) {
     if (!text) return;
     
-    console.log(`[TTSService] Speaking with ${this.provider}:`, text);
+    // Speaking with provider
     
     if (this.provider === 'elevenlabs') {
       return this.speakElevenLabs(text);
@@ -108,7 +143,7 @@ class TTSService {
       utterance.rate = rate;
       
       utterance.onend = () => {
-        console.log('[TTSService] WebSpeech completed');
+        // WebSpeech completed
         resolve();
       };
       
@@ -124,13 +159,13 @@ class TTSService {
       
       // Add timeout fallback
       const timeout = setTimeout(() => {
-        console.log('[TTSService] WebSpeech timeout - resolving anyway');
+        // WebSpeech timeout - resolving anyway
         resolve();
       }, 5000);
       
       utterance.onstart = () => {
         clearTimeout(timeout);
-        console.log('[TTSService] WebSpeech started');
+        // WebSpeech started
       };
       
       window.speechSynthesis.speak(utterance);
@@ -151,7 +186,7 @@ class TTSService {
     
     // Check in-memory cache first
     if (this.audioCache.has(cacheKey)) {
-      console.log('[TTSService] Using in-memory cached audio for:', text);
+      // Using in-memory cached audio
       const cachedUrl = this.audioCache.get(cacheKey);
       return this.playAudioUrl(cachedUrl);
     }
@@ -160,7 +195,7 @@ class TTSService {
     try {
       const cachedData = localStorage.getItem(storageKey);
       if (cachedData) {
-        console.log('[TTSService] Using localStorage cached audio for:', text);
+        // Using localStorage cached audio
         const audioBlob = await this.base64ToBlob(cachedData);
         const audioUrl = URL.createObjectURL(audioBlob);
         this.audioCache.set(cacheKey, audioUrl); // Store in memory cache too
@@ -171,7 +206,7 @@ class TTSService {
     }
     
     try {
-      console.log('[TTSService] Generating new audio with ElevenLabs for:', text);
+      // Generating new audio with ElevenLabs
       
       // Use the cheapest settings
       const audioStream = await this.elevenLabsClient.textToSpeech.convert(
@@ -204,7 +239,7 @@ class TTSService {
         const base64 = await this.blobToBase64(audioBlob);
         localStorage.setItem(storageKey, base64);
         this.updateCacheIndex(cacheKey);
-        console.log('[TTSService] Saved to localStorage cache');
+        // Saved to localStorage cache
       } catch (error) {
         console.error('[TTSService] Error saving to localStorage:', error);
         // Clean up old cache entries if storage is full
@@ -292,7 +327,7 @@ class TTSService {
       
       // Update index
       localStorage.setItem(this.cacheIndexKey, JSON.stringify(index));
-      console.log(`[TTSService] Cleaned up ${toRemove} old cache entries`);
+      // Cleaned up old cache entries
     } catch (error) {
       console.error('[TTSService] Error cleaning cache:', error);
     }
@@ -305,7 +340,7 @@ class TTSService {
     return new Promise((resolve, reject) => {
       const audio = new Audio(audioUrl);
       audio.onended = () => {
-        console.log('[TTSService] Audio playback completed');
+        // Audio playback completed
         resolve();
       };
       audio.onerror = (error) => {
@@ -345,7 +380,7 @@ class TTSService {
         });
         localStorage.removeItem(this.cacheIndexKey);
       }
-      console.log('[TTSService] Cache cleared');
+      // Cache cleared
     } catch (error) {
       console.error('[TTSService] Error clearing cache:', error);
     }
@@ -379,6 +414,50 @@ class TTSService {
       console.error('[TTSService] Error getting cache stats:', error);
       return { count: 0, size: 0 };
     }
+  }
+  
+  /**
+   * Export cache for preloading
+   * Run this in console: window.Game.ttsService.exportCache()
+   */
+  exportCache() {
+    const cache = {};
+    
+    // Get all TTS cache entries
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith(this.cachePrefix)) {
+        cache[key] = localStorage.getItem(key);
+      }
+    });
+    
+    // Get the index
+    const index = localStorage.getItem(this.cacheIndexKey);
+    if (index) {
+      cache[this.cacheIndexKey] = index;
+    }
+    
+    // Create export object
+    const exportData = {
+      version: 1,
+      exportDate: new Date().toISOString(),
+      entries: Object.keys(cache).length,
+      cache: cache
+    };
+    
+    // Download as file
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tts-cache-preload.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    console.log(`[TTSService] Exported ${Object.keys(cache).length} cache entries to public/tts-cache-preload.json`);
+    
+    return exportData;
   }
 }
 

@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build": "npm run build:tts-cache && vite build",
+    "build:only": "vite build",
+    "build:tts-cache": "node scripts/build-tts-cache.js",
+    "preview": "vite preview",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.7.0",

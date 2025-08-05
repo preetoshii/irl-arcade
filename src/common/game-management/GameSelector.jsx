@@ -165,7 +165,7 @@ function GameSelector({ onGameSelect, analyser }) {
     if (games.length > 0 && games[targetIndex]) {
       const targetGame = games[targetIndex];
       if (targetGame.color) {
-        console.log('Target changed to:', targetGame.name, 'updating color to:', targetGame.color);
+        // Target changed, updating color
         setModelColor(targetGame.color);
       }
     }
@@ -206,7 +206,7 @@ function GameSelector({ onGameSelect, analyser }) {
     
     const targetGame = games[targetIndex];
     if (targetGame && window.Game?.speak) {
-      console.log('Speaking game name:', targetGame.name, 'for index:', targetIndex);
+      // Speaking game name
       lastSpokenRef.current = targetIndex;
       
       // Use the global speak function with lower pitch and slower rate
