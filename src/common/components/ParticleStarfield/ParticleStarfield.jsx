@@ -38,7 +38,11 @@ function ParticleStarfield({ color = '255, 255, 255' }) {
         
         // Random angle for radial movement
         const angle = Math.random() * Math.PI * 2;
-        const speed = 1 + Math.random() * 3; // Faster to reach screen edges
+        
+        // Parallax: distant stars move slower, close stars move faster
+        this.depth = Math.random(); // 0 = far, 1 = close
+        const baseSpeed = 0.5 + this.depth * 6; // Much faster for close stars
+        const speed = baseSpeed + Math.random() * 2;
         
         this.vx = Math.cos(angle) * speed;
         this.vy = Math.sin(angle) * speed;
@@ -51,8 +55,8 @@ function ParticleStarfield({ color = '255, 255, 255' }) {
         this.maxLife = distToEdge / speed; // Time to reach edge
         this.decay = 1 / this.maxLife; // Decay rate to reach edge
         
-        // Size variation
-        this.size = Math.random() > 0.8 ? 2 : 1;
+        // Size based on depth - closer stars are bigger
+        this.size = this.depth > 0.7 ? 2 : 1;
       }
       
       getDistanceToEdge(angle, canvasWidth, canvasHeight) {
@@ -79,22 +83,24 @@ function ParticleStarfield({ color = '255, 255, 255' }) {
       }
       
       update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.life -= this.decay;
+        // Slight acceleration as stars get closer (like warp speed)
+        const acceleration = 1 + (1 - this.life) * 0.5; // Up to 50% faster as they approach edge
         
-        // No gravity - constant velocity like stars
+        this.x += this.vx * acceleration;
+        this.y += this.vy * acceleration;
+        this.life -= this.decay;
         
         // Return false if particle is dead
         return this.life > 0;
       }
       
       draw(ctx) {
-        // Only draw if above threshold for solid pixels
-        if (this.life > 0.3) {
-          ctx.fillStyle = `rgba(${colorRef.current}, 1)`; // Solid color matching game
+        // Draw as long as particle is alive
+        if (this.life > 0) {
+          // Brightness based on depth - closer stars are brighter
+          const brightness = 0.3 + this.depth * 0.7; // 30% to 100% brightness
+          ctx.fillStyle = `rgba(${colorRef.current}, ${brightness})`;
         } else {
-          // Don't draw - creates discrete on/off effect
           return;
         }
         
@@ -120,9 +126,9 @@ function ParticleStarfield({ color = '255, 255, 255' }) {
       
       frameCount++;
       
-      // Spawn new particles - VERY minimal
-      if (frameCount % 30 === 0) { // Every half second at 60fps
-        particlesRef.current.push(new Particle()); // Just 1 particle
+      // Spawn new particles more frequently for denser starfield
+      if (frameCount % 3 === 0) { // Every 3 frames
+        particlesRef.current.push(new Particle());
       }
       
       // Update and draw particles
