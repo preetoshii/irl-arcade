@@ -268,17 +268,141 @@
   border-left: 3px solid #444;
 }
 
-.playerList {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+.playerControls {
+  display: flex;
   gap: 10px;
+  margin-bottom: 15px;
+}
+
+.addButton {
+  background: #00aa44;
+  border: 1px solid #00ff88;
+  color: white;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.2s;
+  border-radius: 3px;
+}
+
+.addButton:hover {
+  background: #00cc55;
+  transform: translateY(-1px);
+}
+
+.removeButton {
+  background: #aa4400;
+  border: 1px solid #ff8844;
+  color: white;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.2s;
+  border-radius: 3px;
+}
+
+.removeButton:hover:not(:disabled) {
+  background: #cc5500;
+  transform: translateY(-1px);
+}
+
+.removeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.teamsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.teamSection {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.teamHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #2a2a2a;
+  border-bottom: 1px solid #444;
+}
+
+.teamName {
+  margin: 0;
+  font-size: 16px;
+  color: #88ccff;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.teamName:hover {
+  color: #aaddff;
+  text-decoration: underline;
+}
+
+.teamCount {
+  font-size: 14px;
+  color: #666;
+}
+
+.teamPlayers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  padding: 12px;
 }
 
 .player {
-  background: #111;
+  background: #222;
   padding: 8px 12px;
   border: 1px solid #333;
+  border-radius: 3px;
   font-size: 14px;
+}
+
+.playerName {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.playerName:hover {
+  color: #88ccff;
+  text-decoration: underline;
+}
+
+.editInput {
+  background: #333;
+  border: 1px solid #666;
+  color: #fff;
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: inherit;
+  border-radius: 3px;
+  width: 100%;
+  outline: none;
+}
+
+.editInput:focus {
+  border-color: #88ccff;
+  background: #3a3a3a;
+}
+
+.noPlayers {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 40px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
 }
 
 .systemList {

@@ -344,10 +344,14 @@ class MatchOrchestrator {
     matchState.startBlock(BlockType.ROUND, play);
     
     // Perform
-    await this.systems.performance.perform(play, context);
+    if (!this.isSkipping) {
+      await this.systems.performance.perform(play, context);
+    }
     
-    // Complete block
-    matchState.completeBlock();
+    // Complete block only if not skipping
+    if (!this.isSkipping) {
+      matchState.completeBlock();
+    }
   }
 
   /**
@@ -375,10 +379,32 @@ class MatchOrchestrator {
     matchState.startBlock(BlockType.RELAX, play);
     
     // Perform
-    await this.systems.performance.perform(play, context);
+    if (!this.isSkipping) {
+      await this.systems.performance.perform(play, context);
+    }
     
-    // Complete block
-    matchState.completeBlock();
+    // Complete block only if not skipping
+    if (!this.isSkipping) {
+      matchState.completeBlock();
+    }
+  }
+
+  /**
+   * Skip to next block (debug mode)
+   */
+  skipToNextBlock() {
+    console.log('[MatchOrchestrator] Skipping to next block');
+    this.isSkipping = true;
+    
+    // Process next block without performance
+    this.processNextBlock().then(() => {
+      this.isSkipping = false;
+      // Now complete the block to move forward
+      matchState.completeBlock();
+    }).catch(error => {
+      console.error('[MatchOrchestrator] Error during skip:', error);
+      this.isSkipping = false;
+    });
   }
 
   /**

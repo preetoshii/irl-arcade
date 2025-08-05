@@ -51,6 +51,8 @@ function SimonSaysDebugPage({ onBack }) {
     large: 3000,
     xlarge: 4000
   });
+  const [editingPlayer, setEditingPlayer] = useState(null); // Track which player is being edited
+  const [editingTeam, setEditingTeam] = useState(null); // Track which team is being edited
   
   const maxLogs = 50;
   const initRef = useRef(false);
@@ -316,47 +318,6 @@ function SimonSaysDebugPage({ onBack }) {
     addLog('Match ended by user', 'warning');
   };
 
-  const skipToNextBlock = () => {
-    addLog('Simulating block completion...', 'info');
-    eventBus.emit(Events.BLOCK_COMPLETED);
-  };
-
-  const testTTS = async () => {
-    addLog('Testing text-to-speech...', 'info');
-    
-    // First test basic TTS
-    console.log('Testing basic window.Game.speak...');
-    if (window.Game?.speak) {
-      window.Game.speak("Basic test from global speak");
-    }
-    
-    // Also try a direct utterance
-    setTimeout(() => {
-      console.log('Testing direct utterance...');
-      const utterance = new SpeechSynthesisUtterance("Direct utterance test");
-      utterance.onstart = () => {
-        console.log('Direct utterance started!');
-        addLog('Direct TTS working!', 'success');
-      };
-      utterance.onerror = (e) => {
-        console.error('Direct utterance error:', e);
-        addLog(`Direct TTS error: ${e.error}`, 'error');
-      };
-      window.speechSynthesis.speak(utterance);
-    }, 1000);
-    
-    // Then test PerformanceSystem
-    setTimeout(async () => {
-      try {
-        console.log('[Test] Calling performanceSystem.testVoice()');
-        await performanceSystem.testVoice("Hello! I'm Simon, and this is a test of the speech system!");
-        addLog('PerformanceSystem test completed', 'success');
-      } catch (error) {
-        addLog(`PerformanceSystem test failed: ${error.message}`, 'error');
-        console.error('PerformanceSystem TTS Error:', error);
-      }
-    }, 2000);
-  };
 
   const updatePatternViz = () => {
     const viz = matchOrchestrator.getVisualization();
@@ -454,6 +415,98 @@ function SimonSaysDebugPage({ onBack }) {
     }
   };
 
+  const handlePlayerNameChange = (playerId, newName) => {
+    setEditingPlayer(null);
+    if (!newName || newName.trim() === '') return;
+    
+    const player = players.find(p => p.id === playerId);
+    if (!player || player.name === newName.trim()) return;
+    
+    try {
+      // Update player name in registry
+      const oldName = player.name;
+      player.name = newName.trim();
+      
+      // Update local state
+      setPlayers(prev => prev.map(p => 
+        p.id === playerId ? { ...p, name: newName.trim() } : p
+      ));
+      
+      addLog(`Renamed player "${oldName}" to "${newName.trim()}"`, 'info');
+    } catch (error) {
+      addLog(`Failed to rename player: ${error.message}`, 'error');
+    }
+  };
+
+  const handleTeamNameChange = (oldTeamName, newTeamName) => {
+    setEditingTeam(null);
+    if (!newTeamName || newTeamName.trim() === '' || oldTeamName === newTeamName.trim()) return;
+    
+    try {
+      // Update all players with this team name
+      const updatedPlayers = players.map(p => {
+        if (p.team === oldTeamName) {
+          return { ...p, team: newTeamName.trim() };
+        }
+        return p;
+      });
+      
+      setPlayers(updatedPlayers);
+      
+      // Update in player registry
+      updatedPlayers.forEach(player => {
+        const registryPlayer = playerRegistry.findPlayerById(player.id);
+        if (registryPlayer && registryPlayer.team === oldTeamName) {
+          registryPlayer.team = newTeamName.trim();
+        }
+      });
+      
+      addLog(`Renamed team "${oldTeamName}" to "${newTeamName.trim()}"`, 'info');
+    } catch (error) {
+      addLog(`Failed to rename team: ${error.message}`, 'error');
+    }
+  };
+
+  const addTestPlayer = () => {
+    const names = ['Alex', 'Blake', 'Casey', 'Drew', 'Ellis', 'Finley', 'Gray', 'Harper', 'Indigo', 'Jordan'];
+    const teams = Array.from(new Set(players.map(p => p.team)));
+    if (teams.length === 0) teams.push('Red Team', 'Blue Team');
+    
+    const randomName = names[Math.floor(Math.random() * names.length)] + Math.floor(Math.random() * 100);
+    const randomTeam = teams[Math.floor(Math.random() * teams.length)];
+    
+    try {
+      playerRegistry.addPlayer(randomName, randomTeam);
+      const newPlayer = playerRegistry.findPlayerByName(randomName);
+      if (newPlayer) {
+        setPlayers(prev => [...prev, newPlayer]);
+        addLog(`Added player ${randomName} to ${randomTeam}`, 'success');
+      }
+    } catch (error) {
+      addLog(`Failed to add player: ${error.message}`, 'error');
+    }
+  };
+
+  const removeRandomPlayer = () => {
+    if (players.length === 0) return;
+    
+    const randomPlayer = players[Math.floor(Math.random() * players.length)];
+    try {
+      // Since playerRegistry doesn't have removePlayer, we'll just update our local state
+      setPlayers(prev => prev.filter(p => p.id !== randomPlayer.id));
+      
+      // Mark player as inactive in registry
+      const player = playerRegistry.getPlayer(randomPlayer.id);
+      if (player) {
+        player.status = 'inactive';
+      }
+      
+      addLog(`Removed player ${randomPlayer.name}`, 'warning');
+    } catch (error) {
+      addLog(`Failed to remove player: ${error.message}`, 'error');
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -501,24 +554,6 @@ function SimonSaysDebugPage({ onBack }) {
           </div>
         </div>
 
-        {/* Testing Tools */}
-        <div className={styles.section}>
-          <h2>Testing Tools</h2>
-          <div className={styles.controls}>
-            <button onClick={skipToNextBlock} disabled={matchStatus !== 'running'}>
-              Skip to Next Block
-            </button>
-            <button onClick={testTTS}>
-              Test Speech
-            </button>
-            <button onClick={() => performanceSystem.setMockMode(true)}>
-              Enable Mock TTS
-            </button>
-            <button onClick={updateSystemStatuses}>
-              Refresh Status
-            </button>
-          </div>
-        </div>
 
         {/* Pause Timing Controls */}
         <div className={styles.section}>
@@ -638,15 +673,96 @@ function SimonSaysDebugPage({ onBack }) {
             </div>
           </div>
 
-          {/* Players */}
+          {/* Teams and Players */}
           <div className={styles.section}>
-            <h2>Players ({players.length})</h2>
-            <div className={styles.playerList}>
-              {players.map(p => (
-                <div key={p.id} className={styles.player}>
-                  {p.name} ({p.team})
+            <h2>Teams & Players ({players.length})</h2>
+            <div className={styles.playerControls}>
+              <button 
+                onClick={addTestPlayer}
+                className={styles.addButton}
+              >
+                + Add Player
+              </button>
+              <button 
+                onClick={removeRandomPlayer}
+                disabled={players.length === 0}
+                className={styles.removeButton}
+              >
+                - Remove Random
+              </button>
+            </div>
+            <div className={styles.teamsContainer}>
+              {/* Get unique teams */}
+              {players.length === 0 ? (
+                <div className={styles.noPlayers}>
+                  No players yet. Click "+ Add Player" to add some!
                 </div>
-              ))}
+              ) : (
+                Array.from(new Set(players.map(p => p.team))).map(teamName => {
+                const teamPlayers = players.filter(p => p.team === teamName);
+                return (
+                  <div key={teamName} className={styles.teamSection}>
+                    <div className={styles.teamHeader}>
+                      {editingTeam === teamName ? (
+                        <input
+                          type="text"
+                          defaultValue={teamName}
+                          className={styles.editInput}
+                          autoFocus
+                          onBlur={(e) => handleTeamNameChange(teamName, e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleTeamNameChange(teamName, e.target.value);
+                            } else if (e.key === 'Escape') {
+                              setEditingTeam(null);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <h3 
+                          className={styles.teamName} 
+                          onClick={() => setEditingTeam(teamName)}
+                          title="Click to edit"
+                        >
+                          {teamName}
+                        </h3>
+                      )}
+                      <span className={styles.teamCount}>({teamPlayers.length})</span>
+                    </div>
+                    <div className={styles.teamPlayers}>
+                      {teamPlayers.map(player => (
+                        <div key={player.id} className={styles.player}>
+                          {editingPlayer === player.id ? (
+                            <input
+                              type="text"
+                              defaultValue={player.name}
+                              className={styles.editInput}
+                              autoFocus
+                              onBlur={(e) => handlePlayerNameChange(player.id, e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handlePlayerNameChange(player.id, e.target.value);
+                                } else if (e.key === 'Escape') {
+                                  setEditingPlayer(null);
+                                }
+                              }}
+                            />
+                          ) : (
+                            <span 
+                              className={styles.playerName}
+                              onClick={() => setEditingPlayer(player.id)}
+                              title="Click to edit"
+                            >
+                              {player.name}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+              )}
             </div>
           </div>
 
