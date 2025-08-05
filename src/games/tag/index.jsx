@@ -32,6 +32,8 @@ function TagGame({ mode = 'title', isActive, onExit, analyser }) {
       stats={['3-50 Players', '•', 'Free for All']}
       blobColor="0, 102, 255"  // Blue
       analyser={analyser}
+      show3DModel={true}
+      modelType="running-fbx"
     />
   );
 

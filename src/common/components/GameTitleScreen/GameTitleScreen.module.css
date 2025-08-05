@@ -33,6 +33,15 @@
   pointer-events: none;
 }
 
+.modelContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -2;
+  pointer-events: none;
+}
+
 .letterText {
   position: relative;
   z-index: 1;

@@ -6,6 +6,8 @@
  */
 
 import { useEffect, useRef } from 'react';
+import WireframeModel from '../WireframeModel';
+import { useThemeColor } from '../../contexts/ThemeContext';
 import styles from './GameTitleScreen.module.css';
 
 // Individual letter blob component
@@ -142,13 +144,28 @@ function GameTitleScreen({
   backgroundColor = 'transparent',
   blobColor = '255, 255, 255', // RGB values as string
   className = '',
-  analyser
+  analyser,
+  show3DModel = false,
+  modelType = 'running-man'
 }) {
+  // Get the current theme color (dynamically interpolated)
+  const themeColor = useThemeColor();
+  
   return (
     <div 
       className={`${styles.titleScreen} ${className}`}
       style={{ backgroundColor }}
     >
+      {show3DModel && (
+        <div className={styles.modelContainer}>
+          <WireframeModel 
+            color={themeColor}
+            modelType={modelType}
+            size={1200}
+          />
+        </div>
+      )}
+      
       <h1 className={styles.gameTitle}>
         {title.split('').map((letter, index) => (
           <span 
