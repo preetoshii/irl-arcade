@@ -8,169 +8,105 @@
  * - Navigation buttons and swipe support
  */
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gameRegistry from './GameRegistry';
 import CarouselSlide from './CarouselSlide';
 import PixelParticles from '../components/PixelParticles/PixelParticles';
 import NavigationButton from '../components/NavigationButton';
-import useScrollColorInterpolation from '../hooks/useScrollColorInterpolation';
+import { useThemeColor, useThemeController } from '../contexts/ThemeContext';
 import useSound from '../hooks/useSound';
 import useTTS from '../hooks/useTTS';
 import styles from './GameSelector.module.css';
 
-function GameSelector({ onGameSelect, analyser, onColorChange }) {
+function GameSelector({ onGameSelect, analyser }) {
   const games = gameRegistry.getAllGames();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isStarting, setIsStarting] = useState(false);
   const carouselRef = useRef(null);
-  const isRecentering = useRef(false);
   
   // Custom hooks
   const { playHover, playClick, playSwipe, playSelect } = useSound();
   const { speak } = useTTS();
   
-  // Get the order of games with current game in the middle
-  const getGameOrder = () => {
-    const order = [];
-    const halfLength = Math.floor(games.length / 2);
-    
-    // Add games before current (wrapping around)
-    for (let i = halfLength; i > 0; i--) {
-      const index = (currentIndex - i + games.length) % games.length;
-      order.push(games[index]);
-    }
-    
-    // Add current game
-    order.push(games[currentIndex]);
-    
-    // Add games after current (wrapping around)
-    for (let i = 1; i < games.length - halfLength; i++) {
-      const index = (currentIndex + i) % games.length;
-      order.push(games[index]);
-    }
-    
-    return order;
-  };
-
-  const orderedGames = getGameOrder();
+  // Theme context
+  const themeColor = useThemeColor();
+  const setThemeColor = useThemeController();
   
-  // Get interpolated color
-  const interpolatedColor = useScrollColorInterpolation(carouselRef, orderedGames, isRecentering);
-  
-  // Pass color up to parent
-  useEffect(() => {
-    if (onColorChange) {
-      onColorChange(interpolatedColor);
-    }
-  }, [interpolatedColor, onColorChange]);
-
-  // Handle scroll to detect current game and play sounds
+  // Update theme color based on scroll position
   useEffect(() => {
     const carousel = carouselRef.current;
-    if (!carousel) return;
-    
-    let scrollTimeout;
-    let lastScrollPos = null;
-    let swipeStarted = false;
-    const centerIndex = Math.floor(games.length / 2);
+    if (!carousel || games.length === 0) return;
 
-    const handleScroll = () => {
-      const slideWidth = carousel.offsetWidth;
-      const scrollLeft = carousel.scrollLeft;
-      const currentSlide = Math.round(scrollLeft / slideWidth);
+    const updateColor = () => {
+      const slides = carousel.querySelectorAll('[data-game-id]');
+      const carouselRect = carousel.getBoundingClientRect();
+      const centerX = carouselRect.left + carouselRect.width / 2;
       
-      // Detect swipe start and play sound
-      if (lastScrollPos !== null && !isRecentering.current) {
-        const movement = Math.abs(scrollLeft - lastScrollPos);
+      let closestSlide = null;
+      let secondClosestSlide = null;
+      let minDistance = Infinity;
+      let secondMinDistance = Infinity;
+      
+      slides.forEach((slide) => {
+        const rect = slide.getBoundingClientRect();
+        const slideCenter = rect.left + rect.width / 2;
+        const distance = Math.abs(slideCenter - centerX);
         
-        // Start of new swipe
-        if (!swipeStarted && movement > 5) {
-          swipeStarted = true;
-          playSwipe();
+        if (distance < minDistance) {
+          secondClosestSlide = closestSlide;
+          secondMinDistance = minDistance;
+          closestSlide = { slide, distance };
+          minDistance = distance;
+        } else if (distance < secondMinDistance) {
+          secondClosestSlide = { slide, distance };
+          secondMinDistance = distance;
+        }
+      });
+      
+      if (closestSlide) {
+        const gameIndex1 = parseInt(closestSlide.slide.dataset.gameIndex);
+        const game1 = games[gameIndex1];
+        
+        if (secondClosestSlide && game1) {
+          const gameIndex2 = parseInt(secondClosestSlide.slide.dataset.gameIndex);
+          const game2 = games[gameIndex2];
           
-          // Determine direction and announce target game
-          const direction = scrollLeft > lastScrollPos ? 1 : -1;
-          const targetIndex = (currentIndex + direction + games.length) % games.length;
-          const targetGame = games[targetIndex];
-          
-          if (targetGame) {
-            speak(targetGame.name);
+          if (game2) {
+            const totalDistance = closestSlide.distance + secondClosestSlide.distance;
+            const factor = closestSlide.distance / totalDistance;
+            
+            const color1 = game1.color || '255, 255, 255';
+            const color2 = game2.color || '255, 255, 255';
+            
+            const rgb1 = color1.split(',').map(v => parseInt(v.trim()));
+            const rgb2 = color2.split(',').map(v => parseInt(v.trim()));
+            
+            const r = Math.round(rgb1[0] + (rgb2[0] - rgb1[0]) * factor);
+            const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * factor);
+            const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * factor);
+            
+            setThemeColor(`${r}, ${g}, ${b}`);
+          } else if (game1) {
+            setThemeColor(game1.color || '255, 255, 255');
           }
+        } else if (game1) {
+          setThemeColor(game1.color || '255, 255, 255');
         }
       }
-      
-      lastScrollPos = scrollLeft;
-      
-      // Clear existing timeout
-      clearTimeout(scrollTimeout);
-      
-      // After scrolling stops, update current index and recenter
-      scrollTimeout = setTimeout(() => {
-        swipeStarted = false;
-        const offset = currentSlide - centerIndex;
-        
-        if (offset !== 0) {
-          isRecentering.current = true;
-          
-          // Update the current index
-          setCurrentIndex((prev) => (prev + offset + games.length) % games.length);
-          
-          // Snap back to center
-          requestAnimationFrame(() => {
-            carousel.scrollLeft = centerIndex * slideWidth;
-            setTimeout(() => {
-              isRecentering.current = false;
-            }, 100);
-          });
-        }
-      }, 150);
     };
 
-    carousel.addEventListener('scroll', handleScroll);
-    return () => {
-      carousel.removeEventListener('scroll', handleScroll);
-      clearTimeout(scrollTimeout);
-    };
-  }, [currentIndex, games, speak, playSwipe]);
-
-  // Initialize carousel to center position
-  useEffect(() => {
-    const carousel = carouselRef.current;
-    if (!carousel) return;
+    carousel.addEventListener('scroll', updateColor);
+    setTimeout(updateColor, 100); // Initial update
     
-    const centerIndex = Math.floor(games.length / 2);
-    carousel.scrollLeft = centerIndex * carousel.offsetWidth;
-  }, [games.length]);
+    return () => carousel.removeEventListener('scroll', updateColor);
+  }, [games, setThemeColor]);
 
-  // Handle navigation
+  // TODO: Implement carousel navigation
   const navigate = useCallback((direction) => {
-    const carousel = carouselRef.current;
-    if (!carousel) return;
-    
-    // Calculate next index
-    const offset = direction === 'left' ? -1 : 1;
-    const nextIndex = (currentIndex + offset + games.length) % games.length;
-    const nextGame = games[nextIndex];
-    
-    // Play sounds
-    playClick();
-    setTimeout(playSwipe, 50);
-    
-    // Announce
-    if (nextGame) {
-      speak(nextGame.name);
-    }
-    
-    // Scroll to next slide (will trigger the scroll handler to update state)
-    const slideWidth = carousel.offsetWidth;
-    const targetScroll = carousel.scrollLeft + (offset * slideWidth);
-    
-    carousel.scrollTo({
-      left: targetScroll,
-      behavior: 'smooth'
-    });
-  }, [currentIndex, games, playClick, playSwipe, speak]);
+    console.log('Navigate:', direction);
+    // Will implement clean navigation logic
+  }, []);
 
   const handleStartGame = useCallback(() => {
     const currentGame = games[currentIndex];
@@ -207,40 +143,36 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
   return (
     <div className={styles.selectorContainer}>
       {/* Background particles */}
-      <PixelParticles color={interpolatedColor} />
+      <PixelParticles color={themeColor} />
       
-      {/* Game carousel */}
+      {/* Game carousel - Simple linear layout for now */}
       <div 
         ref={carouselRef}
         className={styles.carousel}
         style={{ opacity: isStarting ? 0 : 1 }}
       >
-        {orderedGames.map((game, index) => {
-          const centerIndex = Math.floor(games.length / 2);
-          const isActive = index === centerIndex;
-          
-          return (
-            <div 
-              key={game.id} 
-              data-game-id={game.id}
-              className={styles.carouselSlide}
-            >
-              <CarouselSlide
-                game={game}
-                isActive={isActive}
-                mode="title"
-                analyser={analyser}
-              />
-            </div>
-          );
-        })}
+        {games.map((game, index) => (
+          <div 
+            key={game.id} 
+            data-game-id={game.id}
+            data-game-index={index}
+            className={styles.carouselSlide}
+          >
+            <CarouselSlide
+              game={game}
+              isActive={index === currentIndex}
+              mode="title"
+              analyser={analyser}
+            />
+          </div>
+        ))}
       </div>
 
       {/* Navigation buttons */}
       <NavigationButton
         onClick={() => navigate('left')}
         onHover={playHover}
-        color={interpolatedColor}
+        color={themeColor}
         position={{ left: '2rem' }}
         initialAnimation={{ x: -20 }}
       >
@@ -250,7 +182,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
       <NavigationButton
         onClick={() => navigate('right')}
         onHover={playHover}
-        color={interpolatedColor}
+        color={themeColor}
         position={{ right: '2rem' }}
         initialAnimation={{ x: 20 }}
       >
@@ -276,7 +208,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
-                  style={{ color: `rgb(${interpolatedColor})` }}
+                  style={{ color: `rgb(${themeColor})` }}
                 >
                   <p>{games[currentIndex].description}</p>
                 </motion.div>
@@ -289,8 +221,8 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
               onClick={handleStartGame}
               onMouseEnter={playHover}
               style={{
-                borderColor: `rgb(${interpolatedColor})`,
-                color: `rgb(${interpolatedColor})`,
+                borderColor: `rgb(${themeColor})`,
+                color: `rgb(${themeColor})`,
                 backgroundColor: 'transparent'
               }}
               whileHover={{ 

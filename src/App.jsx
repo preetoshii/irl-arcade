@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
+import { ThemeProvider, useThemeColor } from './common/contexts/ThemeContext'
 import GameSelector from './common/game-management/GameSelector'
 import GameLoader from './common/game-management/GameLoader'
 import SimonSaysDebugPage from './games/simon-says/debug/DebugPage'
@@ -17,15 +18,17 @@ window.Game = {
   // Add whatever you need here for experiments
 }
 
-function App() {
+function AppContent() {
   const [selectedGame, setSelectedGame] = useState(null);
   const [showDebug, setShowDebug] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [analyser, setAnalyser] = useState(null);
-  const [interpolatedColor, setInterpolatedColor] = useState('255, 255, 255');
   const audioRef = useRef(null);
   const audioContextRef = useRef(null);
   const sourceRef = useRef(null);
+  
+  // Get theme color from context
+  const themeColor = useThemeColor();
 
   // Initialize speech synthesis and menu music
   useEffect(() => {
@@ -135,7 +138,7 @@ function App() {
       <style>
         {`
           body, * {
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M 4 2 L 20 12 L 4 22 Z" fill="none" stroke="rgb(${interpolatedColor})" stroke-width="2" stroke-linejoin="round"/></svg>') 2 12, auto;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M 4 2 L 20 12 L 4 22 Z" fill="none" stroke="rgb(${themeColor})" stroke-width="2" stroke-linejoin="round"/></svg>') 2 12, auto;
           }
           
           button:not(.no-hand-cursor), a, [role="button"], .clickable {
@@ -152,7 +155,6 @@ function App() {
           <GameSelector 
             onGameSelect={handleGameSelect} 
             analyser={analyser}
-            onColorChange={setInterpolatedColor}
           />
           
           {/* Music toggle button - top right */}
@@ -219,6 +221,15 @@ function App() {
       )}
     </div>
   )
+}
+
+// Main App component wrapped with ThemeProvider
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
 }
 
 export default App
