@@ -280,7 +280,7 @@ function GameSelector({ onGameSelect, analyser }) {
       {/* Fixed 3D model in background */}
       <AnimatePresence mode="wait">
         <motion.div 
-          key={currentGameModel}
+          key={`${currentGameModel}-${modelColor}`}
           className={styles.backgroundModel}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

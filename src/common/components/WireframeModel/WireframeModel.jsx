@@ -221,8 +221,9 @@ function PixelatedCanvas({ children, size, color }) {
       alpha: true
     });
     
-    // Pre-calculate color for performance
-    const rgbValues = color.split(',').map(v => parseInt(v.trim()));
+    // Store color in a ref so the animation loop always has the latest value
+    const colorRef = useRef(color);
+    colorRef.current = color;
     
     const animate = () => {
       frameCountRef.current++;
@@ -244,6 +245,10 @@ function PixelatedCanvas({ children, size, color }) {
       
       // Clear main canvas
       ctx.clearRect(0, 0, pixelCanvas.width, pixelCanvas.height);
+      
+      // Get current color from ref
+      const currentColor = colorRef.current;
+      const rgbValues = currentColor.split(',').map(v => parseInt(v.trim()));
       
       // Batch drawing operations
       ctx.fillStyle = `rgb(${rgbValues[0]}, ${rgbValues[1]}, ${rgbValues[2]})`;
