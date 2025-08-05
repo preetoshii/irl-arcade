@@ -41,6 +41,7 @@ function SimonSaysDebugPage({ onBack }) {
   const [currentActivity, setCurrentActivity] = useState('Idle');
   const [timeInBlock, setTimeInBlock] = useState(0);
   const [activeCountdowns, setActiveCountdowns] = useState([]); // Track active countdowns
+  const [lastPlayExpanded, setLastPlayExpanded] = useState(false); // Collapsible state
   
   const logsEndRef = useRef(null);
   const maxLogs = 50;
@@ -529,16 +530,6 @@ function SimonSaysDebugPage({ onBack }) {
           </div>
         </div>
 
-        {/* Last Play Details */}
-        {lastPlay && (
-          <div className={styles.section}>
-            <h2>Last Play</h2>
-            <div className={styles.playDetails}>
-              <pre>{JSON.stringify(lastPlay, null, 2)}</pre>
-            </div>
-          </div>
-        )}
-
         {/* Event Log */}
         <div className={styles.section}>
           <h2>Event Log</h2>
@@ -556,6 +547,33 @@ function SimonSaysDebugPage({ onBack }) {
             <div ref={logsEndRef} />
           </div>
         </div>
+
+        {/* Last Play Details - Collapsible */}
+        {lastPlay && (
+          <div className={styles.lastPlaySection}>
+            <div 
+              className={styles.lastPlayHeader}
+              onClick={() => setLastPlayExpanded(!lastPlayExpanded)}
+            >
+              <h3>
+                Last Play: {lastPlay.roundType} - {lastPlay.variant}
+                <span className={styles.expandIcon}>
+                  {lastPlayExpanded ? ' ▼' : ' ▶'}
+                </span>
+              </h3>
+              {!lastPlayExpanded && (
+                <span className={styles.playPreview}>
+                  {lastPlay.blockType} | {lastPlay.difficulty ? `Difficulty ${lastPlay.difficulty}` : ''} | {lastPlay.duration}s
+                </span>
+              )}
+            </div>
+            {lastPlayExpanded && (
+              <div className={styles.playDetails}>
+                <pre>{JSON.stringify(lastPlay, null, 2)}</pre>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
