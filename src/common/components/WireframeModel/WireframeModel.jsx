@@ -348,14 +348,7 @@ function WireframeModel({
           <pointLight position={[10, 10, 10]} intensity={1} />
           <pointLight position={[-10, -10, -10]} intensity={1} />
           
-          <Suspense fallback={
-            <group>
-              {/* Simple loading indicator - smaller sphere */}
-              <Sphere args={[0.5, 8, 6]} position={[0, 0, 0]}>
-                <meshBasicMaterial color={hexColor} opacity={0.3} transparent />
-              </Sphere>
-            </group>
-          }>
+          <Suspense fallback={null}>
             {modelType === 'running-man' && <RunningMan color={hexColor} />}
             {modelType === 'running-model' && <RunningModel color={hexColor} modelPath="/models/running-person.glb" />}
             {modelType === 'running-fbx' && <FBXModel color={hexColor} modelPath="/models/running-man.fbx" />}
