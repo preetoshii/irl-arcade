@@ -247,13 +247,16 @@ function SimonSaysDebugPage({ onBack }) {
   };
 
   const setupTestPlayers = () => {
+    // Get team names from config
+    const teamNames = configLoader.get('teams.teamNames') || configLoader.get('teamConfig.teamNames') || ['Red Team', 'Blue Team'];
+    
     const testPlayers = [
-      { name: 'Alice', team: 'Red Team' },
-      { name: 'Bob', team: 'Blue Team' },
-      { name: 'Charlie', team: 'Red Team' },
-      { name: 'Diana', team: 'Blue Team' },
-      { name: 'Eve', team: 'Red Team' },
-      { name: 'Frank', team: 'Blue Team' }
+      { name: 'Alice', team: teamNames[0] },
+      { name: 'Bob', team: teamNames[1] },
+      { name: 'Charlie', team: teamNames[0] },
+      { name: 'Diana', team: teamNames[1] },
+      { name: 'Eve', team: teamNames[0] },
+      { name: 'Frank', team: teamNames[1] }
     ];
     
     // Add players and collect their full objects
@@ -455,11 +458,32 @@ function SimonSaysDebugPage({ onBack }) {
       
       // Update in player registry
       updatedPlayers.forEach(player => {
-        const registryPlayer = playerRegistry.findPlayerById(player.id);
+        const registryPlayer = playerRegistry.getPlayer(player.id);
         if (registryPlayer && registryPlayer.team === oldTeamName) {
           registryPlayer.team = newTeamName.trim();
         }
       });
+      
+      // Update config with new team names
+      const currentTeamNames = configLoader.get('teams.teamNames') || configLoader.get('teamConfig.teamNames') || ['Red Team', 'Blue Team'];
+      const newTeamNames = currentTeamNames.map(name => 
+        name === oldTeamName ? newTeamName.trim() : name
+      );
+      
+      // Update both possible config paths
+      configLoader.update('teams.teamNames', newTeamNames);
+      configLoader.update('teamConfig.teamNames', newTeamNames);
+      
+      // Also update in match state if match is active
+      const matchStateData = matchState.getState();
+      if (matchStateData && matchStateData.config) {
+        if (matchStateData.config.teamConfig) {
+          matchStateData.config.teamConfig.teamNames = newTeamNames;
+        }
+        if (matchStateData.config.teams) {
+          matchStateData.config.teams.teamNames = newTeamNames;
+        }
+      }
       
       addLog(`Renamed team "${oldTeamName}" to "${newTeamName.trim()}"`, 'info');
     } catch (error) {
@@ -470,7 +494,11 @@ function SimonSaysDebugPage({ onBack }) {
   const addTestPlayer = () => {
     const names = ['Alex', 'Blake', 'Casey', 'Drew', 'Ellis', 'Finley', 'Gray', 'Harper', 'Indigo', 'Jordan'];
     const teams = Array.from(new Set(players.map(p => p.team)));
-    if (teams.length === 0) teams.push('Red Team', 'Blue Team');
+    if (teams.length === 0) {
+      // Get team names from config
+      const configTeams = configLoader.get('teams.teamNames') || configLoader.get('teamConfig.teamNames') || ['Red Team', 'Blue Team'];
+      teams.push(...configTeams);
+    }
     
     const randomName = names[Math.floor(Math.random() * names.length)] + Math.floor(Math.random() * 100);
     const randomTeam = teams[Math.floor(Math.random() * teams.length)];

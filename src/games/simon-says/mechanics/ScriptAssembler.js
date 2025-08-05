@@ -506,6 +506,8 @@ class ScriptAssembler {
    */
   processTokens(scripts, play, context) {
     const tokens = this.buildTokenMap(play, context);
+    console.log('[ScriptAssembler] Token map:', tokens);
+    console.log('[ScriptAssembler] Scripts before processing:', scripts);
     const processed = {};
     
     Object.entries(scripts).forEach(([key, value]) => {
@@ -518,6 +520,7 @@ class ScriptAssembler {
       }
     });
     
+    console.log('[ScriptAssembler] Scripts after processing:', processed);
     return processed;
   }
 
