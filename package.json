@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "npm run build:tts-cache && vite build",
+    "build": "vite build",
     "build:only": "vite build",
     "build:tts-cache": "node scripts/build-tts-cache.js",
     "preview": "vite preview",
