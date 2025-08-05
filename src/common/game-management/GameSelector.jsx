@@ -24,6 +24,7 @@ function GameSelector({ onGameSelect, analyser }) {
   const games = gameRegistry.getAllGames();
   const [targetIndex, setTargetIndex] = useState(0);
   const [isStarting, setIsStarting] = useState(false);
+  const [modelColor, setModelColor] = useState('255, 255, 255'); // Store model color separately
   const carouselRef = useRef(null);
   
   // Track scroll state to prevent duplicate announcements
@@ -48,6 +49,13 @@ function GameSelector({ onGameSelect, analyser }) {
   const normalizeIndex = (index) => {
     return ((index % games.length) + games.length) % games.length;
   };
+
+  // Set initial model color
+  useEffect(() => {
+    if (games.length > 0 && games[0].color) {
+      setModelColor(games[0].color);
+    }
+  }, [games]);
 
   // Intent-based scroll handling with color interpolation
   useEffect(() => {
@@ -107,6 +115,12 @@ function GameSelector({ onGameSelect, analyser }) {
         setTargetIndex(targetGameIndex);
         playSwipe();
         scrollStateRef.current.hasAnnounced = true;
+        
+        // Update model color when arriving at a new game
+        const targetGame = games[targetGameIndex];
+        if (targetGame && targetGame.color) {
+          setModelColor(targetGame.color);
+        }
       }
       
       // Reset announcement flag when settling
@@ -274,7 +288,7 @@ function GameSelector({ onGameSelect, analyser }) {
           transition={{ duration: 0.5 }}
         >
           <WireframeModel 
-            color={themeColor}
+            color={modelColor}
             modelType={currentGameModel}
             size={1200}
           />
