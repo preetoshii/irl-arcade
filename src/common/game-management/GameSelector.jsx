@@ -194,17 +194,23 @@ function GameSelector({ onGameSelect, analyser }) {
     });
   }, [playClick]);
 
+  // Track last spoken game to prevent repeats
+  const lastSpokenRef = useRef(-1);
+  
   // Watch for target changes and speak game name
   useEffect(() => {
     if (games.length === 0) return;
     
+    // Only speak if target actually changed
+    if (targetIndex === lastSpokenRef.current) return;
+    
     const targetGame = games[targetIndex];
-    if (targetGame) {
-      // Simple TTS
-      const utterance = new SpeechSynthesisUtterance(targetGame.name);
-      utterance.pitch = 0.8;
-      utterance.rate = 0.95;
-      window.speechSynthesis.speak(utterance);
+    if (targetGame && window.Game?.speak) {
+      console.log('Speaking game name:', targetGame.name, 'for index:', targetIndex);
+      lastSpokenRef.current = targetIndex;
+      
+      // Use the global speak function with lower pitch and slower rate
+      window.Game.speak(targetGame.name, 0.8, 0.95);
     }
   }, [targetIndex, games]);
 

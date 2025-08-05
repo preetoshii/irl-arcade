@@ -257,7 +257,39 @@ function SimonSaysDebugPage({ onBack }) {
 
   const testTTS = async () => {
     addLog('Testing text-to-speech...', 'info');
-    await performanceSystem.testVoice("Hello! I'm Simon, and this is a test of the speech system!");
+    
+    // First test basic TTS
+    console.log('Testing basic window.Game.speak...');
+    if (window.Game?.speak) {
+      window.Game.speak("Basic test from global speak");
+    }
+    
+    // Also try a direct utterance
+    setTimeout(() => {
+      console.log('Testing direct utterance...');
+      const utterance = new SpeechSynthesisUtterance("Direct utterance test");
+      utterance.onstart = () => {
+        console.log('Direct utterance started!');
+        addLog('Direct TTS working!', 'success');
+      };
+      utterance.onerror = (e) => {
+        console.error('Direct utterance error:', e);
+        addLog(`Direct TTS error: ${e.error}`, 'error');
+      };
+      window.speechSynthesis.speak(utterance);
+    }, 1000);
+    
+    // Then test PerformanceSystem
+    setTimeout(async () => {
+      try {
+        console.log('[Test] Calling performanceSystem.testVoice()');
+        await performanceSystem.testVoice("Hello! I'm Simon, and this is a test of the speech system!");
+        addLog('PerformanceSystem test completed', 'success');
+      } catch (error) {
+        addLog(`PerformanceSystem test failed: ${error.message}`, 'error');
+        console.error('PerformanceSystem TTS Error:', error);
+      }
+    }, 2000);
   };
 
   const updatePatternViz = () => {

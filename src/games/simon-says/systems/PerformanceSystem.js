@@ -23,6 +23,7 @@ class PerformanceSystem {
     this.synthesis = window.speechSynthesis;
     this.mockMode = false;
     this.interrupted = false;
+    this.primed = false; // Track if speech synthesis has been primed
     
     // Performance settings
     this.settings = {
@@ -338,6 +339,7 @@ class PerformanceSystem {
   async speakSegment(text) {
     if (!text.trim()) return;
     
+    console.log('[PerformanceSystem] Speaking:', text);
     eventBus.emit(Events.SCRIPT_STARTED, { text });
     
     if (this.mockMode || configLoader.get('system.mockTTS')) {
@@ -359,7 +361,12 @@ class PerformanceSystem {
         }
         
         // Event handlers
+        utterance.onstart = () => {
+          console.log('[PerformanceSystem] Speech started');
+        };
+        
         utterance.onend = () => {
+          console.log('[PerformanceSystem] Speech ended');
           eventBus.emit(Events.SCRIPT_COMPLETED, { text });
           resolve();
         };
@@ -370,6 +377,7 @@ class PerformanceSystem {
         };
         
         // Speak
+        console.log('[PerformanceSystem] Calling synthesis.speak()');
         this.synthesis.speak(utterance);
       });
     }
@@ -541,7 +549,35 @@ class PerformanceSystem {
    * Test voice with sample text
    */
   async testVoice(text = "Hello! I'm Simon, and I'll be your host today!") {
+    // First, ensure speech synthesis is primed
+    if (!this.primed) {
+      console.log('[PerformanceSystem] Priming speech synthesis...');
+      await this.primeSpeechSynthesis();
+    }
+    
     await this.speak(text);
+  }
+  
+  /**
+   * Prime speech synthesis with a silent utterance
+   * This must be called from a user interaction to enable TTS
+   */
+  async primeSpeechSynthesis() {
+    return new Promise((resolve) => {
+      // Create a nearly silent utterance
+      const utterance = new SpeechSynthesisUtterance(' ');
+      utterance.volume = 0.01;
+      utterance.onend = () => {
+        console.log('[PerformanceSystem] Speech synthesis primed');
+        this.primed = true;
+        resolve();
+      };
+      utterance.onerror = (e) => {
+        console.error('[PerformanceSystem] Failed to prime speech synthesis:', e);
+        resolve();
+      };
+      window.speechSynthesis.speak(utterance);
+    });
   }
 
   /**
