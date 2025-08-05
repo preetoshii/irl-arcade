@@ -1,10 +1,16 @@
 import { useEffect, useRef } from 'react';
-import styles from './PixelParticles.module.css';
+import styles from './ParticleStarfield.module.css';
 
-function PixelParticles({ color = '255, 255, 255' }) {
+function ParticleStarfield({ color = '255, 255, 255' }) {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const particlesRef = useRef([]);
+  const colorRef = useRef(color);
+
+  // Update color ref when prop changes
+  useEffect(() => {
+    colorRef.current = color;
+  }, [color]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -86,7 +92,7 @@ function PixelParticles({ color = '255, 255, 255' }) {
       draw(ctx) {
         // Only draw if above threshold for solid pixels
         if (this.life > 0.3) {
-          ctx.fillStyle = `rgba(${color}, 1)`; // Solid color matching game
+          ctx.fillStyle = `rgba(${colorRef.current}, 1)`; // Solid color matching game
         } else {
           // Don't draw - creates discrete on/off effect
           return;
@@ -139,9 +145,9 @@ function PixelParticles({ color = '255, 255, 255' }) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [color]);
+  }, []); // Remove color dependency - canvas only created once
 
   return <canvas ref={canvasRef} className={styles.canvas} />;
 }
 
-export default PixelParticles;
+export default ParticleStarfield;

@@ -12,7 +12,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gameRegistry from './GameRegistry';
 import CarouselSlide from './CarouselSlide';
-import PixelParticles from '../components/PixelParticles/PixelParticles';
+import ParticleStarfield from '../components/ParticleStarfield';
 import NavigationButton from '../components/NavigationButton';
 import { useThemeColor, useThemeController } from '../contexts/ThemeContext';
 import useSound from '../hooks/useSound';
@@ -250,8 +250,8 @@ function GameSelector({ onGameSelect, analyser }) {
 
   return (
     <div className={styles.selectorContainer}>
-      {/* Background particles */}
-      <PixelParticles color={themeColor} />
+      {/* Background starfield */}
+      <ParticleStarfield color={themeColor} />
       
       {/* Game carousel with clone slides for wrapping */}
       <div 
