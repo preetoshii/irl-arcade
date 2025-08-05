@@ -269,14 +269,14 @@ function GameSelector({ onGameSelect, analyser }) {
           key={currentGameModel}
           className={styles.backgroundModel}
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.3 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
         >
           <WireframeModel 
             color={themeColor}
             modelType={currentGameModel}
-            size={800}
+            size={1200}
           />
         </motion.div>
       </AnimatePresence>
