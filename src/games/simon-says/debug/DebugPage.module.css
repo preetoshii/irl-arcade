@@ -60,11 +60,14 @@
 
 .content {
   flex: 1;
-  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
   padding: 20px;
-  max-width: 1400px;
+  max-width: 1600px;
   width: 100%;
   margin: 0 auto;
+  overflow: hidden;
 }
 
 /* Scrollbar styling for main content */
@@ -143,6 +146,40 @@
 
 .dangerButton:hover:not(:disabled) {
   background: #cc0000 !important;
+}
+
+.leftColumn {
+  overflow-y: auto;
+  height: 100%;
+  padding-right: 10px;
+}
+
+.rightColumn {
+  overflow-y: auto;
+  height: 100%;
+  padding-left: 10px;
+}
+
+/* Scrollbar styling for columns */
+.leftColumn::-webkit-scrollbar,
+.rightColumn::-webkit-scrollbar {
+  width: 8px;
+}
+
+.leftColumn::-webkit-scrollbar-track,
+.rightColumn::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.leftColumn::-webkit-scrollbar-thumb,
+.rightColumn::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+.leftColumn::-webkit-scrollbar-thumb:hover,
+.rightColumn::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 .grid {
@@ -283,7 +320,7 @@
   background: #111;
   border: 1px solid #333;
   padding: 10px;
-  height: 300px;
+  height: calc(100vh - 200px); /* Take most of the right column */
   overflow-y: auto;
   font-size: 13px;
   line-height: 1.6;

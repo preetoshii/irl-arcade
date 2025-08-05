@@ -40,6 +40,9 @@ class TTSService {
     
     // Load cache index from localStorage
     this.loadCacheIndex();
+    
+    // Always try to load preload cache on startup
+    this.loadPreloadCache();
   }
   
   /**
@@ -51,9 +54,6 @@ class TTSService {
       if (cacheIndex) {
         const index = JSON.parse(cacheIndex);
         // Loaded ${index.length} cached items from localStorage
-      } else {
-        // No cache found, try to load preload data
-        this.loadPreloadCache();
       }
     } catch (error) {
       console.error('[TTSService] Error loading cache index:', error);
@@ -65,28 +65,32 @@ class TTSService {
    */
   async loadPreloadCache() {
     try {
-      // Check if we already have cache
-      if (localStorage.getItem(this.cacheIndexKey)) {
-        return; // Already have cache, don't overwrite
-      }
-      
       // Try to load preload data
       const response = await fetch('/tts-cache-preload.json');
       if (!response.ok) return;
       
       const preloadData = await response.json();
-      // Loading preloaded cache entries
+      console.log(`[TTS] Loading ${Object.keys(preloadData.cache).length} preloaded cache entries...`);
       
+      let loaded = 0;
       // Load all cache entries
       Object.entries(preloadData.cache).forEach(([key, value]) => {
         try {
-          localStorage.setItem(key, value);
+          // Only set if not already present
+          if (!localStorage.getItem(key)) {
+            localStorage.setItem(key, value);
+            loaded++;
+          }
         } catch (e) {
           console.warn('[TTSService] Failed to preload entry:', key);
         }
       });
       
-      // Preload cache loaded successfully
+      if (loaded > 0) {
+        console.log(`[TTS] Successfully loaded ${loaded} new entries from preload cache`);
+      }
+      
+      console.log(`[TTS] Loaded ${Object.keys(preloadData.cache).length} preloaded cache entries`);
     } catch (error) {
       // Preload is optional, so we just log and continue
       // No preload cache available
@@ -196,7 +200,7 @@ class TTSService {
     try {
       const cachedData = localStorage.getItem(storageKey);
       if (cachedData) {
-        console.log(`[TTS] "${text}" - [Cached: localStorage]`);
+        console.log(`[TTS] "${text}" - [Cached: localStorage/preload]`);
         const audioBlob = await this.base64ToBlob(cachedData);
         const audioUrl = URL.createObjectURL(audioBlob);
         this.audioCache.set(cacheKey, audioUrl); // Store in memory cache too
@@ -240,7 +244,7 @@ class TTSService {
         const base64 = await this.blobToBase64(audioBlob);
         localStorage.setItem(storageKey, base64);
         this.updateCacheIndex(cacheKey);
-        console.log(`[TTS] Saved to cache`);
+        console.log(`[TTS] "${text}" - [Saved to cache]`);
       } catch (error) {
         console.error('[TTSService] Error saving to localStorage:', error);
         // Clean up old cache entries if storage is full

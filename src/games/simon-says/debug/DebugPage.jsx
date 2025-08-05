@@ -467,9 +467,10 @@ function SimonSaysDebugPage({ onBack }) {
       </div>
 
       <div className={styles.content}>
-        {/* Controls Section */}
-        <div className={styles.section}>
-          <h2>Match Controls</h2>
+        <div className={styles.leftColumn}>
+          {/* Controls Section */}
+          <div className={styles.section}>
+            <h2>Match Controls</h2>
           <div className={styles.controls}>
             <button 
               onClick={startTestMatch} 
@@ -662,21 +663,24 @@ function SimonSaysDebugPage({ onBack }) {
             </div>
           </div>
         </div>
+        </div>
 
-        {/* Event Log */}
-        <div className={styles.section}>
-          <h2>Event Log</h2>
-          <div className={styles.logContainer}>
-            {logs.map((log, index) => (
-              <div 
-                key={index} 
-                className={styles.logEntry}
-                style={{ color: getLogColor(log.type) }}
-              >
-                <span className={styles.timestamp}>{log.timestamp}</span>
-                <span>{log.message}</span>
-              </div>
-            ))}
+        <div className={styles.rightColumn}>
+          {/* Event Log */}
+          <div className={styles.section}>
+            <h2>Event Log</h2>
+            <div className={styles.logContainer}>
+              {logs.map((log, index) => (
+                <div 
+                  key={index} 
+                  className={styles.logEntry}
+                  style={{ color: getLogColor(log.type) }}
+                >
+                  <span className={styles.timestamp}>{log.timestamp}</span>
+                  <span>{log.message}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
