@@ -12,6 +12,7 @@ import styles from './SettingsButton.module.css';
  * @param {ReactNode} props.children - Button content (icon or custom content)
  * @param {string} props.className - Additional CSS classes
  * @param {boolean} props.isActive - Whether the button is in active state
+ * @param {number} props.beatScale - Scale factor for beat animation (1 = no effect)
  */
 function SettingsButton({ 
   onClick, 
@@ -20,7 +21,8 @@ function SettingsButton({
   position = {},
   children,
   className = '',
-  isActive = false
+  isActive = false,
+  beatScale = 1
 }) {
   return (
     <motion.button
@@ -30,7 +32,7 @@ function SettingsButton({
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ 
         opacity: 1, 
-        scale: 1
+        scale: beatScale
       }}
       style={{ 
         ...position,

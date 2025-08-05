@@ -16,6 +16,7 @@ import ParticleStarfield from '../components/ParticleStarfield';
 import NavigationButton from '../components/NavigationButton';
 import { useThemeColor, useThemeController } from '../contexts/ThemeContext';
 import useSound from '../hooks/useSound';
+import useRhythm from '../hooks/useRhythm';
 import styles from './GameSelector.module.css';
 
 function GameSelector({ onGameSelect, analyser }) {
@@ -34,6 +35,8 @@ function GameSelector({ onGameSelect, analyser }) {
   
   // Custom hooks
   const { playHover, playClick, playSwipe, playSelect } = useSound();
+  // Only use rhythm when analyser is available (music is on)
+  const { isBeat, bounce } = useRhythm(analyser);
   
   // Theme context
   const themeColor = useThemeColor();
@@ -315,6 +318,7 @@ function GameSelector({ onGameSelect, analyser }) {
         position={{ left: '2rem' }}
         initialAnimation={{ x: -20 }}
         isPressed={leftButtonPressed}
+        beatScale={1 + bounce * 0.1} // Subtle 10% bounce
       >
         ◀
       </NavigationButton>
@@ -326,6 +330,7 @@ function GameSelector({ onGameSelect, analyser }) {
         position={{ right: '2rem' }}
         initialAnimation={{ x: 20 }}
         isPressed={rightButtonPressed}
+        beatScale={1 + bounce * 0.1} // Subtle 10% bounce
       >
         ▶
       </NavigationButton>
@@ -377,7 +382,7 @@ function GameSelector({ onGameSelect, analyser }) {
               animate={{ 
                 y: 0, 
                 opacity: 1,
-                scale: startButtonPressed ? 0.95 : 1,
+                scale: startButtonPressed ? 0.95 : (1 + bounce * 0.15), // Bigger bounce for start button
                 transition: { 
                   y: { delay: 0.5 },
                   opacity: { delay: 0.5 }

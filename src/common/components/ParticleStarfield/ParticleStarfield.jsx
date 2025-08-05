@@ -41,7 +41,7 @@ function ParticleStarfield({ color = '255, 255, 255' }) {
         
         // Parallax: distant stars move slower, close stars move faster
         this.depth = Math.random(); // 0 = far, 1 = close
-        const baseSpeed = 0.5 + this.depth * 6; // Much faster for close stars
+        const baseSpeed = 0.8 + this.depth * 6; // Gentle warp speed
         const speed = baseSpeed + Math.random() * 2;
         
         this.vx = Math.cos(angle) * speed;
@@ -57,6 +57,10 @@ function ParticleStarfield({ color = '255, 255, 255' }) {
         
         // Size based on depth - closer stars are bigger
         this.size = this.depth > 0.7 ? 2 : 1;
+        
+        // Store previous positions for trail effect
+        this.prevX = this.x;
+        this.prevY = this.y;
       }
       
       getDistanceToEdge(angle, canvasWidth, canvasHeight) {
@@ -83,8 +87,12 @@ function ParticleStarfield({ color = '255, 255, 255' }) {
       }
       
       update() {
-        // Slight acceleration as stars get closer (like warp speed)
-        const acceleration = 1 + (1 - this.life) * 0.5; // Up to 50% faster as they approach edge
+        // Store previous position for trail
+        this.prevX = this.x;
+        this.prevY = this.y;
+        
+        // Moderate acceleration as stars get closer (like warp speed)
+        const acceleration = 1 + (1 - this.life) * 1; // Up to 2x faster as they approach edge
         
         this.x += this.vx * acceleration;
         this.y += this.vy * acceleration;
@@ -94,23 +102,35 @@ function ParticleStarfield({ color = '255, 255, 255' }) {
         return this.life > 0;
       }
       
-      draw(ctx) {
+      draw(ctx, pixelSize) {
         // Draw as long as particle is alive
-        if (this.life > 0) {
-          // Brightness based on depth - closer stars are brighter
-          const brightness = 0.3 + this.depth * 0.7; // 30% to 100% brightness
-          ctx.fillStyle = `rgba(${colorRef.current}, ${brightness})`;
+        if (this.life <= 0) return;
+        
+        // Brightness based on depth - closer stars are brighter
+        const brightness = 0.3 + this.depth * 0.7; // 30% to 100% brightness
+        
+        // Calculate speed for trail length
+        const dx = this.x - this.prevX;
+        const dy = this.y - this.prevY;
+        const speed = Math.sqrt(dx * dx + dy * dy);
+        
+        // Only draw trails for fast-moving stars
+        if (speed > 5 && this.depth > 0.3) {
+          // Draw motion blur trail
+          ctx.strokeStyle = `rgba(${colorRef.current}, ${brightness * 0.8})`;
+          ctx.lineWidth = this.size * pixelSize;
+          ctx.beginPath();
+          ctx.moveTo(this.prevX, this.prevY);
+          ctx.lineTo(this.x, this.y);
+          ctx.stroke();
         } else {
-          return;
+          // Draw normal pixel for slow stars
+          const pixelX = Math.floor(this.x / pixelSize) * pixelSize;
+          const pixelY = Math.floor(this.y / pixelSize) * pixelSize;
+          ctx.fillStyle = `rgba(${colorRef.current}, ${brightness})`;
+          const particleSize = this.size * pixelSize;
+          ctx.fillRect(pixelX, pixelY, particleSize - 1, particleSize - 1);
         }
-        
-        // Snap to pixel grid
-        const pixelX = Math.floor(this.x / pixelSize) * pixelSize;
-        const pixelY = Math.floor(this.y / pixelSize) * pixelSize;
-        
-        // Draw pixelated particle
-        const particleSize = this.size * pixelSize;
-        ctx.fillRect(pixelX, pixelY, particleSize - 1, particleSize - 1);
       }
     }
     
@@ -126,8 +146,8 @@ function ParticleStarfield({ color = '255, 255, 255' }) {
       
       frameCount++;
       
-      // Spawn new particles more frequently for denser starfield
-      if (frameCount % 3 === 0) { // Every 3 frames
+      // Spawn new particles at moderate rate
+      if (frameCount % 6 === 0) { // Every 6 frames (10 per second at 60fps)
         particlesRef.current.push(new Particle());
       }
       
@@ -135,7 +155,7 @@ function ParticleStarfield({ color = '255, 255, 255' }) {
       particlesRef.current = particlesRef.current.filter(particle => {
         const alive = particle.update();
         if (alive) {
-          particle.draw(ctx);
+          particle.draw(ctx, pixelSize);
         }
         return alive;
       });
@@ -151,7 +171,7 @@ function ParticleStarfield({ color = '255, 255, 255' }) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, []); // Remove color dependency - canvas only created once
+  }, []); // Remove analyser dependency
 
   return <canvas ref={canvasRef} className={styles.canvas} />;
 }
