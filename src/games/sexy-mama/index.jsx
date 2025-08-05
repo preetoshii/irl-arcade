@@ -2,7 +2,7 @@ import { useState } from 'react';
 import GameTitleScreen from '../../common/components/GameTitleScreen';
 import config from './config';
 
-function SexyMama({ onExit, analyser }) {
+function SexyMama({ mode = 'title', isActive, onExit, analyser }) {
   const [gameState, setGameState] = useState('title');
 
   if (gameState === 'title') {
@@ -11,6 +11,9 @@ function SexyMama({ onExit, analyser }) {
         title={config.name}
         blobColor="255, 20, 147"  // Deep pink
         analyser={analyser}
+        show3DModel={true}
+        modelType="sexy-mama-fbx"
+        isActive={isActive}
       />
     );
   }

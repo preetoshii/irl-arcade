@@ -14,43 +14,54 @@ function FBXModel({ color = 'white', modelPath }) {
   // Apply wireframe material to all meshes
   useEffect(() => {
     if (fbx) {
+      console.log('Applying color to FBX:', color, modelPath);
       fbx.traverse((child) => {
         if (child.isMesh) {
+          console.log('Mesh found:', child.name);
           // Use a simpler geometry to reduce wireframe density
           const geometry = child.geometry;
           
-          child.material = new THREE.MeshBasicMaterial({
+          // Force material update
+          const newMaterial = new THREE.MeshBasicMaterial({
             color: new THREE.Color(color),
-            wireframe: false
+            wireframe: false,
+            side: THREE.DoubleSide // Render both sides
           });
+          
+          child.material = newMaterial;
+          child.material.needsUpdate = true;
         }
       });
     }
-  }, [fbx, color]);
+  }, [fbx, color, modelPath]);
   
-  // Animate if it has animations
+  // Animate using useFrame instead of separate animation loop
+  const mixerRef = useRef(null);
+  const clockRef = useRef(new THREE.Clock());
+  
   useEffect(() => {
     if (fbx.animations && fbx.animations.length > 0) {
-      const mixer = new THREE.AnimationMixer(fbx);
-      const action = mixer.clipAction(fbx.animations[0]);
+      mixerRef.current = new THREE.AnimationMixer(fbx);
+      const action = mixerRef.current.clipAction(fbx.animations[0]);
       action.play();
       
-      // Update animation in render loop
-      const clock = new THREE.Clock();
-      const animate = () => {
-        requestAnimationFrame(animate);
-        mixer.update(clock.getDelta());
+      return () => {
+        if (mixerRef.current) {
+          mixerRef.current.stopAllAction();
+        }
       };
-      animate();
-      
-      return () => mixer.stopAllAction();
     }
   }, [fbx]);
   
-  // Rotate the model
+  // Rotate the model and update animation
   useFrame((state, delta) => {
     if (groupRef.current) {
       groupRef.current.rotation.y += delta * 0.5;
+    }
+    
+    // Update animation mixer in the same frame
+    if (mixerRef.current) {
+      mixerRef.current.update(clockRef.current.getDelta());
     }
   });
   
@@ -94,10 +105,17 @@ function RunningModel({ color = 'white', modelPath }) {
     }
   }, [scene, color]);
   
-  // Rotate the model
+  // Rotate the model and ensure color stays applied
   useFrame((state, delta) => {
     if (groupRef.current) {
       groupRef.current.rotation.y += delta * 0.5;
+      
+      // Failsafe: reapply color if it's black
+      groupRef.current.traverse((child) => {
+        if (child.isMesh && child.material.color.getHex() === 0x000000) {
+          child.material.color = new THREE.Color(color);
+        }
+      });
     }
   });
   
@@ -155,12 +173,14 @@ function RunningMan({ color = 'white' }) {
 }
 
 /**
- * Pixelation effect component
+ * Pixelation effect component - Optimized version
  */
 function PixelatedCanvas({ children, size, color }) {
   const canvasRef = useRef(null);
   const pixelCanvasRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
+  const animationFrameRef = useRef(null);
+  const frameCountRef = useRef(0);
   
   useEffect(() => {
     if (!canvasRef.current || !pixelCanvasRef.current) return;
@@ -169,7 +189,10 @@ function PixelatedCanvas({ children, size, color }) {
     if (!canvas) return;
     
     const pixelCanvas = pixelCanvasRef.current;
-    const ctx = pixelCanvas.getContext('2d');
+    const ctx = pixelCanvas.getContext('2d', { 
+      willReadFrequently: true,
+      alpha: true 
+    });
     
     // Set canvas size for pixelation
     const pixelSize = 4; // Same as blob pixelation
@@ -179,41 +202,72 @@ function PixelatedCanvas({ children, size, color }) {
     pixelCanvas.width = size;
     pixelCanvas.height = size;
     
+    // Create offscreen canvas for better performance
+    const offscreenCanvas = document.createElement('canvas');
+    offscreenCanvas.width = lowResWidth;
+    offscreenCanvas.height = lowResHeight;
+    const offscreenCtx = offscreenCanvas.getContext('2d', {
+      willReadFrequently: true,
+      alpha: true
+    });
+    
+    // Pre-calculate color for performance
+    const rgbValues = color.split(',').map(v => parseInt(v.trim()));
+    
     const animate = () => {
-      // Clear canvas
-      ctx.clearRect(0, 0, pixelCanvas.width, pixelCanvas.height);
+      frameCountRef.current++;
       
-      // Draw 3D canvas to 2D canvas at low resolution
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(canvas, 0, 0, lowResWidth, lowResHeight);
+      // Skip frames for better performance (30fps instead of 60fps)
+      if (frameCountRef.current % 2 === 0) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+        return;
+      }
       
-      // Get image data and redraw pixelated
-      const imageData = ctx.getImageData(0, 0, lowResWidth, lowResHeight);
+      // Draw 3D canvas to offscreen canvas at low resolution
+      offscreenCtx.clearRect(0, 0, lowResWidth, lowResHeight);
+      offscreenCtx.imageSmoothingEnabled = false;
+      offscreenCtx.drawImage(canvas, 0, 0, lowResWidth, lowResHeight);
+      
+      // Get image data
+      const imageData = offscreenCtx.getImageData(0, 0, lowResWidth, lowResHeight);
       const data = imageData.data;
       
+      // Clear main canvas
       ctx.clearRect(0, 0, pixelCanvas.width, pixelCanvas.height);
       
-      // Draw pixels
+      // Batch drawing operations
+      ctx.fillStyle = `rgb(${rgbValues[0]}, ${rgbValues[1]}, ${rgbValues[2]})`;
+      
+      // Draw pixels using a single path for better performance
+      ctx.beginPath();
       for (let y = 0; y < lowResHeight; y++) {
         for (let x = 0; x < lowResWidth; x++) {
           const i = (y * lowResWidth + x) * 4;
-          const alpha = data[i + 3] / 255;
+          const alpha = data[i + 3];
           
-          if (alpha > 0.1) { // Only draw visible pixels
-            ctx.fillStyle = `rgba(${color}, ${alpha})`;
-            ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize - 1, pixelSize - 1);
+          if (alpha > 25) { // Only draw visible pixels (threshold in 0-255)
+            ctx.rect(x * pixelSize, y * pixelSize, pixelSize - 1, pixelSize - 1);
           }
         }
       }
+      ctx.fill();
       
-      requestAnimationFrame(animate);
+      animationFrameRef.current = requestAnimationFrame(animate);
     };
     
     // Start animation after a brief delay
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       setIsReady(true);
       animate();
     }, 100);
+    
+    // Cleanup function
+    return () => {
+      clearTimeout(timeoutId);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
   }, [size, color]);
   
   return (
@@ -267,21 +321,31 @@ function WireframeModel({
         <Canvas
           camera={{ position: [0, 2, 8], fov: 50 }}
           style={{ background: 'transparent' }}
-          dpr={[1, 2]}
-          gl={{ antialias: false, alpha: true }}
+          dpr={1}
+          gl={{ 
+            antialias: false, 
+            alpha: true,
+            powerPreference: 'low-power',
+            preserveDrawingBuffer: false
+          }}
         >
           <ambientLight intensity={1} />
           <pointLight position={[10, 10, 10]} intensity={1} />
           <pointLight position={[-10, -10, -10]} intensity={1} />
           
           <Suspense fallback={
-            <Sphere args={[2, 16, 12]} position={[0, 0, 0]}>
-              <meshBasicMaterial color={hexColor} wireframe />
-            </Sphere>
+            <group>
+              {/* Simple loading indicator - smaller sphere */}
+              <Sphere args={[0.5, 8, 6]} position={[0, 0, 0]}>
+                <meshBasicMaterial color={hexColor} opacity={0.3} transparent />
+              </Sphere>
+            </group>
           }>
             {modelType === 'running-man' && <RunningMan color={hexColor} />}
             {modelType === 'running-model' && <RunningModel color={hexColor} modelPath="/models/running-person.glb" />}
             {modelType === 'running-fbx' && <FBXModel color={hexColor} modelPath="/models/running-man.fbx" />}
+            {modelType === 'sexy-mama-fbx' && <FBXModel color={hexColor} modelPath="/models/sexy-mama.fbx" />}
+            {modelType === 'simon-says-fbx' && <FBXModel color={hexColor} modelPath="/models/simon-says.fbx" />}
           </Suspense>
         </Canvas>
       </PixelatedCanvas>
@@ -289,7 +353,15 @@ function WireframeModel({
   );
 }
 
-// Preload the model
+// Preload the models
 useGLTF.preload('/models/running-person.glb');
+// Note: FBXLoader doesn't have built-in preload, but we can trigger loading
+if (typeof window !== 'undefined') {
+  const loader = new FBXLoader();
+  // Preload common models
+  loader.load('/models/running-man.fbx', () => {});
+  loader.load('/models/sexy-mama.fbx', () => {});
+  loader.load('/models/simon-says.fbx', () => {});
+}
 
 export default WireframeModel;

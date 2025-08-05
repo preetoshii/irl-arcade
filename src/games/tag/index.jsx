@@ -34,6 +34,7 @@ function TagGame({ mode = 'title', isActive, onExit, analyser }) {
       analyser={analyser}
       show3DModel={true}
       modelType="running-fbx"
+      isActive={isActive}
     />
   );
 

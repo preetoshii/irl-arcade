@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import WireframeModel from '../WireframeModel';
 import { useThemeColor } from '../../contexts/ThemeContext';
 import styles from './GameTitleScreen.module.css';
@@ -146,7 +147,8 @@ function GameTitleScreen({
   className = '',
   analyser,
   show3DModel = false,
-  modelType = 'running-man'
+  modelType = 'running-man',
+  isActive = false
 }) {
   // Get the current theme color (dynamically interpolated)
   const themeColor = useThemeColor();
@@ -157,13 +159,18 @@ function GameTitleScreen({
       style={{ backgroundColor }}
     >
       {show3DModel && (
-        <div className={styles.modelContainer}>
+        <motion.div 
+          className={styles.modelContainer}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+        >
           <WireframeModel 
             color={themeColor}
             modelType={modelType}
             size={1200}
           />
-        </div>
+        </motion.div>
       )}
       
       <h1 className={styles.gameTitle}>
