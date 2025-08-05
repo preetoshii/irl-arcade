@@ -168,6 +168,7 @@ class TTSService {
         // WebSpeech started
       };
       
+      console.log(`[TTS] "${text}" - [WebSpeech]`);
       window.speechSynthesis.speak(utterance);
     });
   }
@@ -186,7 +187,7 @@ class TTSService {
     
     // Check in-memory cache first
     if (this.audioCache.has(cacheKey)) {
-      // Using in-memory cached audio
+      console.log(`[TTS] "${text}" - [Cached: memory]`);
       const cachedUrl = this.audioCache.get(cacheKey);
       return this.playAudioUrl(cachedUrl);
     }
@@ -195,7 +196,7 @@ class TTSService {
     try {
       const cachedData = localStorage.getItem(storageKey);
       if (cachedData) {
-        // Using localStorage cached audio
+        console.log(`[TTS] "${text}" - [Cached: localStorage]`);
         const audioBlob = await this.base64ToBlob(cachedData);
         const audioUrl = URL.createObjectURL(audioBlob);
         this.audioCache.set(cacheKey, audioUrl); // Store in memory cache too
@@ -206,7 +207,7 @@ class TTSService {
     }
     
     try {
-      // Generating new audio with ElevenLabs
+      console.log(`[TTS] "${text}" - [New: generating with ElevenLabs]`);
       
       // Use the cheapest settings
       const audioStream = await this.elevenLabsClient.textToSpeech.convert(
@@ -239,7 +240,7 @@ class TTSService {
         const base64 = await this.blobToBase64(audioBlob);
         localStorage.setItem(storageKey, base64);
         this.updateCacheIndex(cacheKey);
-        // Saved to localStorage cache
+        console.log(`[TTS] Saved to cache`);
       } catch (error) {
         console.error('[TTSService] Error saving to localStorage:', error);
         // Clean up old cache entries if storage is full
@@ -340,7 +341,6 @@ class TTSService {
     return new Promise((resolve, reject) => {
       const audio = new Audio(audioUrl);
       audio.onended = () => {
-        // Audio playback completed
         resolve();
       };
       audio.onerror = (error) => {
