@@ -3,53 +3,33 @@
  * 
  * Features:
  * - Full-screen horizontal carousel with scroll-snap
- * - Adjacent game preloading for smooth swiping
- * - Fixed "START GAME" button overlay
- * - 8-bit jingles that play when landing on games
+ * - Sound effects and text-to-speech
+ * - Dynamic color interpolation
+ * - Navigation buttons and swipe support
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gameRegistry from './GameRegistry';
 import CarouselSlide from './CarouselSlide';
 import PixelParticles from '../components/PixelParticles/PixelParticles';
+import NavigationButton from '../components/NavigationButton';
 import useScrollColorInterpolation from '../hooks/useScrollColorInterpolation';
+import useSound from '../hooks/useSound';
+import useTTS from '../hooks/useTTS';
 import styles from './GameSelector.module.css';
 
 function GameSelector({ onGameSelect, analyser, onColorChange }) {
   const games = gameRegistry.getAllGames();
-  const [currentIndex, setCurrentIndex] = useState(0); // Current game in original array
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isStarting, setIsStarting] = useState(false);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const [activeGameInfo, setActiveGameInfo] = useState(null);
-  const [targetGameInfo, setTargetGameInfo] = useState(null);
   const carouselRef = useRef(null);
-  const isJumpingRef = useRef(false);
-  const scrollTimeoutRef = useRef(null);
   const isRecentering = useRef(false);
-  const lastScrollPosRef = useRef(null);
-  const swipeStartedRef = useRef(false);
-  const lastScrollTimeRef = useRef(Date.now());
-  const isProgrammaticScrollRef = useRef(false);
-  const lastAnnouncedGameRef = useRef(null);
   
-  // Load voices on mount and set initial game info
-  useEffect(() => {
-    // Voices might not be loaded immediately
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.getVoices();
-      };
-    }
-    // Also try to load them immediately
-    window.speechSynthesis.getVoices();
-    
-    // Set initial game info
-    if (games.length > 0 && !targetGameInfo) {
-      setTargetGameInfo(games[currentIndex]);
-    }
-  }, []);
-
+  // Custom hooks
+  const { playHover, playClick, playSwipe, playSelect } = useSound();
+  const { speak } = useTTS();
+  
   // Get the order of games with current game in the middle
   const getGameOrder = () => {
     const order = [];
@@ -75,7 +55,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
 
   const orderedGames = getGameOrder();
   
-  // Get interpolated color based on scroll position
+  // Get interpolated color
   const interpolatedColor = useScrollColorInterpolation(carouselRef, orderedGames, isRecentering);
   
   // Pass color up to parent
@@ -85,132 +65,66 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     }
   }, [interpolatedColor, onColorChange]);
 
-  // Handle scroll to detect current game
+  // Handle scroll to detect current game and play sounds
   useEffect(() => {
     const carousel = carouselRef.current;
     if (!carousel) return;
     
     let scrollTimeout;
+    let lastScrollPos = null;
+    let swipeStarted = false;
     const centerIndex = Math.floor(games.length / 2);
 
     const handleScroll = () => {
-      // Set scrolling state immediately
-      setIsScrolling(true);
-      
       const slideWidth = carousel.offsetWidth;
       const scrollLeft = carousel.scrollLeft;
       const currentSlide = Math.round(scrollLeft / slideWidth);
       
-      // Detect target game when starting to scroll (but not during recentering)
-      if (!swipeStartedRef.current && lastScrollPosRef.current !== null && !isRecentering.current && !isProgrammaticScrollRef.current) {
-        const movement = scrollLeft - lastScrollPosRef.current;
-        if (Math.abs(movement) > 20) { // Significant movement
-          // Determine direction: right = next game, left = previous game
-          const direction = movement > 0 ? 1 : -1;
+      // Detect swipe start and play sound
+      if (lastScrollPos !== null && !isRecentering.current) {
+        const movement = Math.abs(scrollLeft - lastScrollPos);
+        
+        // Start of new swipe
+        if (!swipeStarted && movement > 5) {
+          swipeStarted = true;
+          playSwipe();
           
-          // Calculate the actual game index in the original array
-          const targetGameIndex = (currentIndex + direction + games.length) % games.length;
-          const targetGame = games[targetGameIndex];
+          // Determine direction and announce target game
+          const direction = scrollLeft > lastScrollPos ? 1 : -1;
+          const targetIndex = (currentIndex + direction + games.length) % games.length;
+          const targetGame = games[targetIndex];
           
-          // Announce target game and show its description
           if (targetGame) {
-            setTargetGameInfo(targetGame);
-            
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(targetGame.name);
-            
-            // Use American male voice - filter out female voices
-            const voices = window.speechSynthesis.getVoices();
-            const americanMaleVoice = voices.find(voice => {
-              const name = voice.name.toLowerCase();
-              const lang = voice.lang.toLowerCase();
-              
-              // Must be English
-              if (!lang.includes('en')) return false;
-              
-              // Exclude female voices
-              if (name.includes('female') || name.includes('samantha') || 
-                  name.includes('victoria') || name.includes('karen') || 
-                  name.includes('moira') || name.includes('fiona') ||
-                  name.includes('tessa') || name.includes('zira')) return false;
-              
-              // Prefer known male voices
-              return name.includes('alex') || name.includes('fred') || 
-                     name.includes('bruce') || name.includes('male') ||
-                     name.includes('david') || name.includes('mark');
-            });
-            
-            if (americanMaleVoice) {
-              utterance.voice = americanMaleVoice;
-            }
-            
-            utterance.pitch = 0.8;
-            utterance.rate = 0.95;
-            window.speechSynthesis.speak(utterance);
+            speak(targetGame.name);
           }
         }
       }
       
-      // Detect start of new swipe for sweep sound
-      if (lastScrollPosRef.current !== null && !isProgrammaticScrollRef.current) {
-        const movement = Math.abs(scrollLeft - lastScrollPosRef.current);
-        const currentTime = Date.now();
-        const timeDelta = currentTime - lastScrollTimeRef.current;
-        const velocity = timeDelta > 0 ? movement / timeDelta : 0;
-        
-        // Detect if this is a new swipe starting
-        if (!swipeStartedRef.current && movement > 5 && velocity > 0.5) {
-          // Play sweep sound once at the start of swipe
-          const audio = new Audio('/sounds/sweep.wav');
-          audio.volume = 0.3;
-          audio.play().catch(err => console.log('Sweep sound failed:', err));
-          swipeStartedRef.current = true;
-        }
-        
-        // Reset swipe flag if movement stops (velocity drops)
-        if (velocity < 0.1 && swipeStartedRef.current) {
-          swipeStartedRef.current = false;
-        }
-        
-        lastScrollTimeRef.current = currentTime;
-      }
+      lastScrollPos = scrollLeft;
       
-      lastScrollPosRef.current = scrollLeft;
-      
-      // Clear any pending scroll end check
+      // Clear existing timeout
       clearTimeout(scrollTimeout);
-      clearTimeout(scrollTimeoutRef.current);
       
-      // After scrolling stops, update current index based on offset from center
+      // After scrolling stops, update current index and recenter
       scrollTimeout = setTimeout(() => {
+        swipeStarted = false;
         const offset = currentSlide - centerIndex;
         
         if (offset !== 0) {
-          // Mark that we're recentering to prevent color flash
           isRecentering.current = true;
           
-          // Update the current index and re-center
+          // Update the current index
           setCurrentIndex((prev) => (prev + offset + games.length) % games.length);
           
-          // Snap back to center position
+          // Snap back to center
           requestAnimationFrame(() => {
-            isProgrammaticScrollRef.current = true;
             carousel.scrollLeft = centerIndex * slideWidth;
-            // Reset flags after snap
             setTimeout(() => {
               isRecentering.current = false;
-              isProgrammaticScrollRef.current = false;
             }, 100);
           });
         }
-        
-        // Set scrolling to false after we've settled
-        scrollTimeoutRef.current = setTimeout(() => {
-          setIsScrolling(false);
-          // Reset for next navigation
-          lastAnnouncedGameRef.current = null;
-        }, 100);
-      }, 150); // Wait 150ms after scroll stops
+      }, 150);
     };
 
     carousel.addEventListener('scroll', handleScroll);
@@ -218,7 +132,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
       carousel.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollTimeout);
     };
-  }, [currentIndex, games.length]);
+  }, [currentIndex, games, speak, playSwipe]);
 
   // Initialize carousel to center position
   useEffect(() => {
@@ -229,103 +143,58 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
     carousel.scrollLeft = centerIndex * carousel.offsetWidth;
   }, [games.length]);
 
-
-
-
-  const handleStartGame = () => {
-    // Play select sound for game selection
-    const audio = new Audio('/sounds/select.wav');
-    audio.volume = 0.3;
-    audio.play().catch(err => console.log('Select sound failed:', err));
-    
-    setIsStarting(true);
-    
-    // Small delay for transition
-    setTimeout(() => {
-      onGameSelect(activeGameInfo.id);
-    }, 300);
-  };
-
-  const handleButtonHover = () => {
-    // Play hover sound
-    const audio = new Audio('/sounds/hover.wav');
-    audio.volume = 0.3;
-    audio.play().catch(err => console.log('Hover sound failed:', err));
-  };
-
-  const handleNavigate = (direction) => {
+  // Handle navigation
+  const navigate = useCallback((direction) => {
     const carousel = carouselRef.current;
     if (!carousel) return;
     
-    // Announce target game
+    // Calculate next index
     const offset = direction === 'left' ? -1 : 1;
-    const targetGameIndex = (currentIndex + offset + games.length) % games.length;
-    const targetGame = games[targetGameIndex];
+    const nextIndex = (currentIndex + offset + games.length) % games.length;
+    const nextGame = games[nextIndex];
     
-    if (targetGame) {
-      setTargetGameInfo(targetGame);
-      
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(targetGame.name);
-      
-      // Use American male voice - filter out female voices
-      const voices = window.speechSynthesis.getVoices();
-      const americanMaleVoice = voices.find(voice => {
-        const name = voice.name.toLowerCase();
-        const lang = voice.lang.toLowerCase();
-        
-        // Must be English
-        if (!lang.includes('en')) return false;
-        
-        // Exclude female voices
-        if (name.includes('female') || name.includes('samantha') || 
-            name.includes('victoria') || name.includes('karen') || 
-            name.includes('moira') || name.includes('fiona') ||
-            name.includes('tessa') || name.includes('zira')) return false;
-        
-        // Prefer known male voices
-        return name.includes('alex') || name.includes('fred') || 
-               name.includes('bruce') || name.includes('male') ||
-               name.includes('david') || name.includes('mark');
-      });
-      
-      if (americanMaleVoice) {
-        utterance.voice = americanMaleVoice;
-      }
-      
-      utterance.pitch = 0.8;
-      utterance.rate = 0.95;
-      window.speechSynthesis.speak(utterance);
+    // Play sounds
+    playClick();
+    setTimeout(playSwipe, 50);
+    
+    // Announce
+    if (nextGame) {
+      speak(nextGame.name);
     }
     
-    // Play click sound immediately, then sweep sound
-    const clickAudio = new Audio('/sounds/click.wav');
-    clickAudio.volume = 0.3;
-    clickAudio.play().catch(err => console.log('Click sound failed:', err));
-    
-    setTimeout(() => {
-      const sweepAudio = new Audio('/sounds/sweep.wav');
-      sweepAudio.volume = 0.3;
-      sweepAudio.play().catch(err => console.log('Sweep sound failed:', err));
-    }, 50);
-    
+    // Scroll to next slide (will trigger the scroll handler to update state)
     const slideWidth = carousel.offsetWidth;
-    const currentScroll = carousel.scrollLeft;
-    const targetScroll = direction === 'left' 
-      ? currentScroll - slideWidth 
-      : currentScroll + slideWidth;
+    const targetScroll = carousel.scrollLeft + (offset * slideWidth);
     
-    isProgrammaticScrollRef.current = true;
     carousel.scrollTo({
       left: targetScroll,
       behavior: 'smooth'
     });
+  }, [currentIndex, games, playClick, playSwipe, speak]);
+
+  const handleStartGame = useCallback(() => {
+    const currentGame = games[currentIndex];
+    if (!currentGame) return;
     
-    // Reset flag after scroll animation completes
+    playSelect();
+    setIsStarting(true);
+    
     setTimeout(() => {
-      isProgrammaticScrollRef.current = false;
-    }, 800); // Increased to ensure scroll completes
-  };
+      onGameSelect(currentGame.id);
+    }, 300);
+  }, [currentIndex, games, playSelect, onGameSelect]);
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') navigate('left');
+      if (e.key === 'ArrowRight') navigate('right');
+      if (e.key === 'Enter') handleStartGame();
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate, handleStartGame]);
 
   if (games.length === 0) {
     return (
@@ -337,10 +206,10 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
 
   return (
     <div className={styles.selectorContainer}>
-      {/* Particles using interpolated color */}
+      {/* Background particles */}
       <PixelParticles color={interpolatedColor} />
       
-      {/* Carousel */}
+      {/* Game carousel */}
       <div 
         ref={carouselRef}
         className={styles.carousel}
@@ -351,12 +220,15 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
           const isActive = index === centerIndex;
           
           return (
-            <div key={game.id} className={styles.carouselSlide}>
+            <div 
+              key={game.id} 
+              data-game-id={game.id}
+              className={styles.carouselSlide}
+            >
               <CarouselSlide
                 game={game}
                 isActive={isActive}
                 mode="title"
-                onActiveChange={isActive ? setActiveGameInfo : undefined}
                 analyser={analyser}
               />
             </div>
@@ -364,65 +236,28 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
         })}
       </div>
 
-      {/* Left navigation button */}
-      <motion.button
-        className={styles.navButton}
-        onClick={() => handleNavigate('left')}
-        onMouseEnter={handleButtonHover}
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        style={{ 
-          left: '2rem',
-          color: `rgb(${interpolatedColor})`,
-          borderColor: `rgb(${interpolatedColor})`,
-          backgroundColor: 'transparent'
-        }}
-        whileHover={{ 
-          scale: 1.1,
-          backgroundColor: '#fff',
-          color: '#000',
-          borderColor: '#fff'
-        }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ 
-          type: "spring",
-          stiffness: 400,
-          damping: 17
-        }}
+      {/* Navigation buttons */}
+      <NavigationButton
+        onClick={() => navigate('left')}
+        onHover={playHover}
+        color={interpolatedColor}
+        position={{ left: '2rem' }}
+        initialAnimation={{ x: -20 }}
       >
         ◀
-      </motion.button>
+      </NavigationButton>
 
-      {/* Right navigation button */}
-      <motion.button
-        className={styles.navButton}
-        onClick={() => handleNavigate('right')}
-        onMouseEnter={handleButtonHover}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        style={{ 
-          right: '2rem',
-          color: `rgb(${interpolatedColor})`,
-          borderColor: `rgb(${interpolatedColor})`,
-          backgroundColor: 'transparent'
-        }}
-        whileHover={{ 
-          scale: 1.1,
-          backgroundColor: '#fff',
-          color: '#000',
-          borderColor: '#fff'
-        }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ 
-          type: "spring",
-          stiffness: 400,
-          damping: 17
-        }}
+      <NavigationButton
+        onClick={() => navigate('right')}
+        onHover={playHover}
+        color={interpolatedColor}
+        position={{ right: '2rem' }}
+        initialAnimation={{ x: 20 }}
       >
         ▶
-      </motion.button>
+      </NavigationButton>
 
-      {/* Fixed overlay controls */}
+      {/* Game info and start button */}
       <AnimatePresence>
         {!isStarting && (
           <motion.div 
@@ -431,19 +266,19 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Game description - show target game when scrolling, active when not */}
+            {/* Game description */}
             <AnimatePresence mode="wait">
-              {(targetGameInfo || activeGameInfo) && (
+              {games[currentIndex] && (
                 <motion.div 
                   className={styles.gameDescriptionOverlay}
-                  key={(targetGameInfo || activeGameInfo)?.id}
+                  key={games[currentIndex].id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                   style={{ color: `rgb(${interpolatedColor})` }}
                 >
-                  <p>{(targetGameInfo || activeGameInfo)?.description}</p>
+                  <p>{games[currentIndex].description}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -452,7 +287,7 @@ function GameSelector({ onGameSelect, analyser, onColorChange }) {
             <motion.button
               className={styles.startButton}
               onClick={handleStartGame}
-              onMouseEnter={handleButtonHover}
+              onMouseEnter={playHover}
               style={{
                 borderColor: `rgb(${interpolatedColor})`,
                 color: `rgb(${interpolatedColor})`,

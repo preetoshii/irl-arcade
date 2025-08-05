@@ -1,84 +1,85 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
-function useScrollColorInterpolation(carouselRef, games, isRecentering) {
+function useScrollColorInterpolation(carouselRef, games, isNavigating) {
   const [interpolatedColor, setInterpolatedColor] = useState('255, 255, 255');
-  const lastValidColor = useRef('255, 255, 255');
 
   useEffect(() => {
     const carousel = carouselRef.current;
     if (!carousel || games.length === 0) return;
 
     const updateColor = () => {
-      // Skip color updates during recentering to prevent flash
-      if (isRecentering.current) {
-        return;
-      }
+      // Skip during navigation to prevent flash
+      if (isNavigating && isNavigating.current) return;
       
-      // Get all game slides - look for direct children divs
-      const slides = carousel.querySelectorAll(':scope > div');
+      const slides = carousel.querySelectorAll('[data-game-id]');
       const carouselRect = carousel.getBoundingClientRect();
-      const viewportCenterX = carouselRect.left + carouselRect.width / 2;
+      const centerX = carouselRect.left + carouselRect.width / 2;
       
       let closestSlide = null;
       let secondClosestSlide = null;
       let minDistance = Infinity;
       let secondMinDistance = Infinity;
       
-      // Find the two slides closest to center
-      slides.forEach((slide, index) => {
+      // Find two closest slides to center
+      slides.forEach((slide) => {
         const rect = slide.getBoundingClientRect();
         const slideCenter = rect.left + rect.width / 2;
-        const distance = Math.abs(slideCenter - viewportCenterX);
+        const distance = Math.abs(slideCenter - centerX);
         
         if (distance < minDistance) {
           secondClosestSlide = closestSlide;
           secondMinDistance = minDistance;
-          closestSlide = { slide, index, distance };
+          closestSlide = { slide, distance };
           minDistance = distance;
         } else if (distance < secondMinDistance) {
-          secondClosestSlide = { slide, index, distance };
+          secondClosestSlide = { slide, distance };
           secondMinDistance = distance;
         }
       });
       
-      // If we have two slides, interpolate between them
-      if (closestSlide && secondClosestSlide && games[closestSlide.index] && games[secondClosestSlide.index]) {
-        const totalDistance = closestSlide.distance + secondClosestSlide.distance;
-        const factor = closestSlide.distance / totalDistance;
+      // Calculate interpolated color
+      if (closestSlide) {
+        const gameId1 = closestSlide.slide.dataset.gameId;
+        const game1 = games.find(g => g.id === gameId1);
         
-        const color1 = games[closestSlide.index].color || '255, 255, 255';
-        const color2 = games[secondClosestSlide.index].color || '255, 255, 255';
-        
-        // Parse colors
-        const rgb1 = color1.split(',').map(v => parseInt(v.trim()));
-        const rgb2 = color2.split(',').map(v => parseInt(v.trim()));
-        
-        // Interpolate
-        const r = Math.round(rgb1[0] + (rgb2[0] - rgb1[0]) * factor);
-        const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * factor);
-        const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * factor);
-        
-        const newColor = `${r}, ${g}, ${b}`;
-        setInterpolatedColor(newColor);
-        lastValidColor.current = newColor;
-      } else if (closestSlide && games[closestSlide.index]) {
-        // Just use the closest slide's color
-        const newColor = games[closestSlide.index].color || '255, 255, 255';
-        setInterpolatedColor(newColor);
-        lastValidColor.current = newColor;
+        if (secondClosestSlide && game1) {
+          const gameId2 = secondClosestSlide.slide.dataset.gameId;
+          const game2 = games.find(g => g.id === gameId2);
+          
+          if (game2) {
+            // Interpolate between two colors
+            const totalDistance = closestSlide.distance + secondClosestSlide.distance;
+            const factor = closestSlide.distance / totalDistance;
+            
+            const color1 = game1.color || '255, 255, 255';
+            const color2 = game2.color || '255, 255, 255';
+            
+            const rgb1 = color1.split(',').map(v => parseInt(v.trim()));
+            const rgb2 = color2.split(',').map(v => parseInt(v.trim()));
+            
+            const r = Math.round(rgb1[0] + (rgb2[0] - rgb1[0]) * factor);
+            const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * factor);
+            const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * factor);
+            
+            setInterpolatedColor(`${r}, ${g}, ${b}`);
+          } else if (game1) {
+            setInterpolatedColor(game1.color || '255, 255, 255');
+          }
+        } else if (game1) {
+          setInterpolatedColor(game1.color || '255, 255, 255');
+        }
       }
     };
 
-    // Update on scroll
     carousel.addEventListener('scroll', updateColor);
     
-    // Initial update
-    setTimeout(updateColor, 100); // Small delay to ensure DOM is ready
+    // Initial color update
+    setTimeout(updateColor, 100);
     
     return () => {
       carousel.removeEventListener('scroll', updateColor);
     };
-  }, [carouselRef, games, isRecentering]);
+  }, [carouselRef, games, isNavigating]);
 
   return interpolatedColor;
 }

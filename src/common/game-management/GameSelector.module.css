@@ -157,32 +157,6 @@
   /* Invisible but clickable */
 }
 
-/* Navigation buttons */
-.navButton {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: 3px solid #fff;
-  color: #fff;
-  font-size: 2rem;
-  font-family: monospace;
-  padding: 2rem 2.5rem; /* Increased padding for larger hit area */
-  cursor: pointer;
-  z-index: 100;
-  transition: none; /* Handled by Framer Motion */
-}
-
-/* Extend clickable area with pseudo-element */
-.navButton::before {
-  content: '';
-  position: absolute;
-  top: -3rem;
-  left: -3rem;
-  right: -3rem;
-  bottom: -3rem;
-  /* Invisible but clickable */
-}
 
 /* Slide indicators - simple dots */
 .indicators {
@@ -233,11 +207,6 @@
   .overlayControls {
     padding: 1.5rem;
     padding-bottom: 4rem;
-  }
-  
-  /* Hide nav buttons on mobile - swipe is more natural */
-  .navButton {
-    display: none;
   }
 }
 

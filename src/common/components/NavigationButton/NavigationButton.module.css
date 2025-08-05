@@ -1,0 +1,42 @@
+/**
+ * NavigationButton.module.css - Styles for navigation arrows
+ * 
+ * Features:
+ * - Fixed positioning with centering
+ * - Extended click area for better UX
+ * - Retro monospace font
+ * - Transitions handled by Framer Motion
+ */
+
+.navButton {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 3px solid #fff;
+  color: #fff;
+  font-size: 2rem;
+  font-family: monospace;
+  padding: 2rem 2.5rem; /* Increased padding for larger hit area */
+  cursor: pointer;
+  z-index: 100;
+  transition: none; /* Handled by Framer Motion */
+}
+
+/* Extend clickable area with pseudo-element */
+.navButton::before {
+  content: '';
+  position: absolute;
+  top: -3rem;
+  left: -3rem;
+  right: -3rem;
+  bottom: -3rem;
+  /* Invisible but clickable */
+}
+
+/* Mobile - hide navigation buttons */
+@media (max-width: 768px) {
+  .navButton {
+    display: none;
+  }
+}
