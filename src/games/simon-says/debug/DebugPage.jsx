@@ -560,13 +560,8 @@ function SimonSaysDebugPage({ onBack }) {
           <div className={styles.section}>
             <h2>Pattern Progress</h2>
             <div className={styles.patternContainer}>
-              {/* Emoji visualization */}
-              <div className={styles.patternViz}>
-                {patternViz || 'No pattern loaded'}
-              </div>
-              
               {/* Detailed breakdown */}
-              {patternViz && patternViz !== 'No pattern loaded' && (
+              {patternViz && patternViz !== 'No pattern loaded' ? (
                 <>
                   <div className={styles.patternDetails}>
                     {parsePatternViz(patternViz)?.map((block, idx) => (
@@ -599,6 +594,10 @@ function SimonSaysDebugPage({ onBack }) {
                     </div>
                   </div>
                 </>
+              ) : (
+                <div className={styles.noPattern}>
+                  No pattern loaded
+                </div>
               )}
             </div>
           </div>

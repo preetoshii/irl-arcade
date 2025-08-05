@@ -158,18 +158,14 @@
   gap: 20px;
 }
 
-.patternViz {
-  font-family: monospace;
-  font-size: 20px;
-  padding: 10px;
-  background: #111;
-  border: 1px solid #333;
+.noPattern {
   text-align: center;
-  min-height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: 4px;
+  color: #666;
+  font-style: italic;
+  padding: 40px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
 }
 
 .patternDetails {
