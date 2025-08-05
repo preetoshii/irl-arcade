@@ -57,6 +57,7 @@ function GameSelector({ onGameSelect, analyser }) {
     }
   }, [games]);
 
+
   // Intent-based scroll handling with color interpolation
   useEffect(() => {
     const carousel = carouselRef.current;
@@ -102,9 +103,7 @@ function GameSelector({ onGameSelect, analyser }) {
         const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * fraction);
         const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * fraction);
         
-        const interpolatedColor = `${r}, ${g}, ${b}`;
-        setThemeColor(interpolatedColor);
-        setModelColor(interpolatedColor);
+        setThemeColor(`${r}, ${g}, ${b}`);
       }
       
       // Detect intent - which game are we heading toward?
@@ -113,10 +112,15 @@ function GameSelector({ onGameSelect, analyser }) {
       const targetGameIndex = normalizeIndex(nearestGameIndex);
       
       // Detect when target changes
-      if (targetGameIndex !== targetIndex && !scrollStateRef.current.hasAnnounced) {
+      if (targetGameIndex !== targetIndex) {
         setTargetIndex(targetGameIndex);
-        playSwipe();
-        scrollStateRef.current.hasAnnounced = true;
+        
+        // Only play swipe sound if we haven't announced this position yet
+        if (!scrollStateRef.current.hasAnnounced) {
+          playSwipe();
+          scrollStateRef.current.hasAnnounced = true;
+        }
+        
       }
       
       // Reset announcement flag when settling
@@ -157,7 +161,18 @@ function GameSelector({ onGameSelect, analyser }) {
       carousel.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollStateRef.current.scrollTimeout);
     };
-  }, [games, targetIndex, setThemeColor, playSwipe]);
+  }, [games, setThemeColor, playSwipe]);
+
+  // Update model color when target changes
+  useEffect(() => {
+    if (games.length > 0 && games[targetIndex]) {
+      const targetGame = games[targetIndex];
+      if (targetGame.color) {
+        console.log('Target changed to:', targetGame.name, 'updating color to:', targetGame.color);
+        setModelColor(targetGame.color);
+      }
+    }
+  }, [targetIndex, games]);
 
   // Unified navigation for buttons and keyboard
   const navigate = useCallback((direction) => {
@@ -276,7 +291,7 @@ function GameSelector({ onGameSelect, analyser }) {
       {/* Fixed 3D model in background */}
       <AnimatePresence mode="wait">
         <motion.div 
-          key={`${currentGameModel}-${modelColor}`}
+          key={currentGameModel}
           className={styles.backgroundModel}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
