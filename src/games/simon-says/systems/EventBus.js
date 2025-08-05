@@ -257,6 +257,8 @@ const Events = {
   PERFORMANCE_COMPLETED: 'performance:completed',
   SCRIPT_STARTED: 'script:started',
   SCRIPT_COMPLETED: 'script:completed',
+  PAUSE_STARTED: 'pause:started',
+  PAUSE_COMPLETED: 'pause:completed',
 
   // Player events
   PLAYER_ADDED: 'player:added',

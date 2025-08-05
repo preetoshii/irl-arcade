@@ -40,11 +40,13 @@ function SimonSaysDebugPage({ onBack }) {
   const [systemStatuses, setSystemStatuses] = useState({});
   const [currentActivity, setCurrentActivity] = useState('Idle');
   const [timeInBlock, setTimeInBlock] = useState(0);
+  const [activeCountdowns, setActiveCountdowns] = useState([]); // Track active countdowns
   
   const logsEndRef = useRef(null);
   const maxLogs = 50;
   const initRef = useRef(false);
   const unsubscribers = useRef([]);
+  const countdownIntervals = useRef(new Map()); // Store countdown intervals
 
   // Initialize systems on mount
   useEffect(() => {
@@ -59,6 +61,10 @@ function SimonSaysDebugPage({ onBack }) {
       console.log('[DebugPage] Cleaning up debug page event listeners');
       unsubscribers.current.forEach(unsub => unsub());
       unsubscribers.current = [];
+      
+      // Clean up countdown intervals
+      countdownIntervals.current.forEach(interval => clearInterval(interval));
+      countdownIntervals.current.clear();
     };
   }, []);
 
@@ -166,6 +172,51 @@ function SimonSaysDebugPage({ onBack }) {
     
     eventBus.on(Events.PERFORMANCE_COMPLETED, () => {
       addLog('Performance completed', 'info');
+    });
+    
+    // Pause events
+    eventBus.on(Events.PAUSE_STARTED, (data) => {
+      const { type, milliseconds } = data;
+      addLog(`Pause [${type.toUpperCase()}]: ${milliseconds}ms`, 'info');
+      
+      // Start countdown timer
+      const countdownId = Date.now();
+      const startTime = Date.now();
+      const endTime = startTime + milliseconds;
+      
+      // Add to active countdowns
+      setActiveCountdowns(prev => [...prev, {
+        id: countdownId,
+        type: type,
+        startTime: startTime,
+        endTime: endTime,
+        duration: milliseconds,
+        remaining: milliseconds
+      }]);
+      
+      // Create countdown interval
+      const interval = setInterval(() => {
+        const now = Date.now();
+        const remaining = Math.max(0, endTime - now);
+        
+        setActiveCountdowns(prev => prev.map(countdown => 
+          countdown.id === countdownId 
+            ? { ...countdown, remaining: remaining }
+            : countdown
+        ));
+        
+        if (remaining === 0) {
+          clearInterval(interval);
+          countdownIntervals.current.delete(countdownId);
+          setActiveCountdowns(prev => prev.filter(c => c.id !== countdownId));
+        }
+      }, 50); // Update every 50ms for smooth progress
+      
+      countdownIntervals.current.set(countdownId, interval);
+    });
+    
+    eventBus.on(Events.PAUSE_COMPLETED, (data) => {
+      addLog(`Pause [${data.type.toUpperCase()}] completed`, 'info');
     });
     
     // Pattern events
@@ -412,6 +463,45 @@ function SimonSaysDebugPage({ onBack }) {
               </div>
             </div>
           </div>
+
+          {/* Active Countdowns */}
+          {activeCountdowns.length > 0 && (
+            <div className={styles.section}>
+              <h2>Active Timers</h2>
+              <div className={styles.countdownList}>
+                {activeCountdowns.map(countdown => {
+                  const progress = (countdown.duration - countdown.remaining) / countdown.duration;
+                  const percentage = Math.round(progress * 100);
+                  
+                  return (
+                    <div key={countdown.id} className={styles.countdown}>
+                      <div className={styles.countdownHeader}>
+                        <span className={styles.countdownType}>
+                          {countdown.type.toUpperCase()} PAUSE
+                        </span>
+                        <span className={styles.countdownTime}>
+                          {(countdown.remaining / 1000).toFixed(1)}s
+                        </span>
+                      </div>
+                      <div className={styles.progressBar}>
+                        <div 
+                          className={styles.progressFill}
+                          style={{ 
+                            width: `${percentage}%`,
+                            backgroundColor: countdown.type === 'micro' ? '#ff6b6b' :
+                                           countdown.type === 'small' ? '#feca57' :
+                                           countdown.type === 'medium' ? '#48dbfb' :
+                                           countdown.type === 'large' ? '#ff9ff3' :
+                                           '#54a0ff'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Players */}
           <div className={styles.section}>

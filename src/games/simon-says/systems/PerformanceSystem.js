@@ -425,7 +425,19 @@ class PerformanceSystem {
    */
   async pause(duration) {
     const milliseconds = getPauseDuration(duration, configLoader.get('difficulty.pauseMultiplier', 1.0));
+    
+    // Emit pause event for debug logging
+    eventBus.emit(Events.PAUSE_STARTED, { 
+      type: duration, 
+      milliseconds: milliseconds 
+    });
+    
     await this.wait(milliseconds);
+    
+    // Emit pause completed event
+    eventBus.emit(Events.PAUSE_COMPLETED, { 
+      type: duration 
+    });
   }
 
   /**
