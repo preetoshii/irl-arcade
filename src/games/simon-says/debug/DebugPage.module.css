@@ -152,6 +152,12 @@
   margin-bottom: 20px;
 }
 
+.patternContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .patternViz {
   font-family: monospace;
   font-size: 20px;
@@ -163,6 +169,94 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  letter-spacing: 4px;
+}
+
+.patternDetails {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.patternBlock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: #2a2a2a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.currentBlock {
+  background: #333;
+  border-color: #ffaa00;
+  box-shadow: 0 0 10px rgba(255, 170, 0, 0.3);
+}
+
+.completedBlock {
+  background: #1a2a1a;
+  border-color: #00ff88;
+  opacity: 0.7;
+}
+
+.blockSymbol {
+  font-size: 20px;
+}
+
+.blockInfo {
+  flex: 1;
+}
+
+.blockType {
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.blockDesc {
+  font-size: 10px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.patternLegend {
+  background: #1a1a1a;
+  padding: 15px;
+  border-radius: 4px;
+  border: 1px solid #333;
+}
+
+.patternLegend h4 {
+  margin: 0 0 10px 0;
+  font-size: 12px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.legendItems {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legendSymbol {
+  font-size: 16px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.legendText {
+  font-size: 11px;
+  color: #ccc;
 }
 
 .stateInfo {

@@ -363,6 +363,69 @@ function SimonSaysDebugPage({ onBack }) {
     setPatternViz(viz || 'No pattern loaded');
   };
 
+  // Helper to explain pattern symbols
+  const getPatternLegend = () => {
+    return {
+      '🎭': 'Opening Ceremony',
+      '🎬': 'Closing Ceremony',
+      '🎮': 'Round',
+      '😌': 'Relax Break',
+      '✓': 'Completed',
+      '[]': 'Current'
+    };
+  };
+
+  // Parse pattern visualization to show detailed info
+  const parsePatternViz = (viz) => {
+    if (!viz || viz === 'No pattern loaded') return null;
+    
+    const blocks = viz.split(' ');
+    const details = [];
+    let roundCount = 0;
+    let relaxCount = 0;
+    
+    blocks.forEach((block, index) => {
+      const isCompleted = block.startsWith('✓');
+      const isCurrent = block.includes('[');
+      const symbol = block.replace('✓', '').replace('[', '').replace(']', '');
+      
+      let type = '';
+      let description = '';
+      
+      switch (symbol) {
+        case '🎭':
+          type = 'Opening';
+          description = 'Welcome players and explain rules';
+          break;
+        case '🎬':
+          type = 'Closing';
+          description = 'Celebrate and wrap up';
+          break;
+        case '🎮':
+          roundCount++;
+          type = `Round ${roundCount}`;
+          description = 'Active gameplay';
+          break;
+        case '😌':
+          relaxCount++;
+          type = `Break ${relaxCount}`;
+          description = 'Rest and recover';
+          break;
+      }
+      
+      details.push({
+        index,
+        symbol,
+        type,
+        description,
+        isCompleted,
+        isCurrent
+      });
+    });
+    
+    return details;
+  };
+
   const updateSystemStatuses = () => {
     const status = matchOrchestrator.getStatus();
     setSystemStatuses(status.systemStatus || {});
@@ -496,8 +559,47 @@ function SimonSaysDebugPage({ onBack }) {
           {/* Pattern Visualization */}
           <div className={styles.section}>
             <h2>Pattern Progress</h2>
-            <div className={styles.patternViz}>
-              {patternViz || 'No pattern loaded'}
+            <div className={styles.patternContainer}>
+              {/* Emoji visualization */}
+              <div className={styles.patternViz}>
+                {patternViz || 'No pattern loaded'}
+              </div>
+              
+              {/* Detailed breakdown */}
+              {patternViz && patternViz !== 'No pattern loaded' && (
+                <>
+                  <div className={styles.patternDetails}>
+                    {parsePatternViz(patternViz)?.map((block, idx) => (
+                      <div 
+                        key={idx} 
+                        className={`${styles.patternBlock} ${
+                          block.isCurrent ? styles.currentBlock : 
+                          block.isCompleted ? styles.completedBlock : ''
+                        }`}
+                      >
+                        <span className={styles.blockSymbol}>{block.symbol}</span>
+                        <div className={styles.blockInfo}>
+                          <div className={styles.blockType}>{block.type}</div>
+                          <div className={styles.blockDesc}>{block.description}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Legend */}
+                  <div className={styles.patternLegend}>
+                    <h4>Legend:</h4>
+                    <div className={styles.legendItems}>
+                      {Object.entries(getPatternLegend()).map(([symbol, meaning]) => (
+                        <div key={symbol} className={styles.legendItem}>
+                          <span className={styles.legendSymbol}>{symbol}</span>
+                          <span className={styles.legendText}>{meaning}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
