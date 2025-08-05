@@ -21,9 +21,17 @@ import styles from './GameSelector.module.css';
 
 function GameSelector({ onGameSelect, analyser }) {
   const games = gameRegistry.getAllGames();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [targetIndex, setTargetIndex] = useState(0);
   const [isStarting, setIsStarting] = useState(false);
   const carouselRef = useRef(null);
+  
+  // Track scroll state to prevent duplicate announcements
+  const scrollStateRef = useRef({
+    hasAnnounced: false,
+    lastPosition: 0,
+    isScrolling: false,
+    scrollTimeout: null
+  });
   
   // Custom hooks
   const { playHover, playClick, playSwipe, playSelect } = useSound();
@@ -33,83 +41,159 @@ function GameSelector({ onGameSelect, analyser }) {
   const themeColor = useThemeColor();
   const setThemeColor = useThemeController();
   
-  // Update theme color based on scroll position
+  // Helper to get normalized game index (handles wrapping)
+  const normalizeIndex = (index) => {
+    return ((index % games.length) + games.length) % games.length;
+  };
+
+  // Intent-based scroll handling with color interpolation
   useEffect(() => {
     const carousel = carouselRef.current;
     if (!carousel || games.length === 0) return;
 
-    const updateColor = () => {
-      const slides = carousel.querySelectorAll('[data-game-id]');
-      const carouselRect = carousel.getBoundingClientRect();
-      const centerX = carouselRect.left + carouselRect.width / 2;
+    const handleScroll = () => {
+      const scrollLeft = carousel.scrollLeft;
+      const slideWidth = carousel.offsetWidth;
+      const position = scrollLeft / slideWidth - 1; // -1 because of clone at start
       
-      let closestSlide = null;
-      let secondClosestSlide = null;
-      let minDistance = Infinity;
-      let secondMinDistance = Infinity;
+      // Update color interpolation based on exact position
+      const exactPosition = position + 1; // Account for clone
+      const index1 = Math.floor(exactPosition);
+      const index2 = Math.ceil(exactPosition);
+      const fraction = exactPosition - index1;
       
-      slides.forEach((slide) => {
-        const rect = slide.getBoundingClientRect();
-        const slideCenter = rect.left + rect.width / 2;
-        const distance = Math.abs(slideCenter - centerX);
-        
-        if (distance < minDistance) {
-          secondClosestSlide = closestSlide;
-          secondMinDistance = minDistance;
-          closestSlide = { slide, distance };
-          minDistance = distance;
-        } else if (distance < secondMinDistance) {
-          secondClosestSlide = { slide, distance };
-          secondMinDistance = distance;
-        }
-      });
-      
-      if (closestSlide) {
-        const gameIndex1 = parseInt(closestSlide.slide.dataset.gameIndex);
-        const game1 = games[gameIndex1];
-        
-        if (secondClosestSlide && game1) {
-          const gameIndex2 = parseInt(secondClosestSlide.slide.dataset.gameIndex);
-          const game2 = games[gameIndex2];
-          
-          if (game2) {
-            const totalDistance = closestSlide.distance + secondClosestSlide.distance;
-            const factor = closestSlide.distance / totalDistance;
-            
-            const color1 = game1.color || '255, 255, 255';
-            const color2 = game2.color || '255, 255, 255';
-            
-            const rgb1 = color1.split(',').map(v => parseInt(v.trim()));
-            const rgb2 = color2.split(',').map(v => parseInt(v.trim()));
-            
-            const r = Math.round(rgb1[0] + (rgb2[0] - rgb1[0]) * factor);
-            const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * factor);
-            const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * factor);
-            
-            setThemeColor(`${r}, ${g}, ${b}`);
-          } else if (game1) {
-            setThemeColor(game1.color || '255, 255, 255');
-          }
-        } else if (game1) {
-          setThemeColor(game1.color || '255, 255, 255');
-        }
+      // Get games for interpolation (handling clones)
+      let game1, game2;
+      if (index1 === 0) {
+        game1 = games[games.length - 1]; // Clone of last game
+      } else if (index1 > games.length) {
+        game1 = games[0]; // Clone of first game
+      } else {
+        game1 = games[index1 - 1];
       }
+      
+      if (index2 === 0) {
+        game2 = games[games.length - 1];
+      } else if (index2 > games.length) {
+        game2 = games[0];
+      } else {
+        game2 = games[index2 - 1];
+      }
+      
+      // Interpolate colors
+      if (game1 && game2) {
+        const color1 = game1.color || '255, 255, 255';
+        const color2 = game2.color || '255, 255, 255';
+        
+        const rgb1 = color1.split(',').map(v => parseInt(v.trim()));
+        const rgb2 = color2.split(',').map(v => parseInt(v.trim()));
+        
+        const r = Math.round(rgb1[0] + (rgb2[0] - rgb1[0]) * fraction);
+        const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * fraction);
+        const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * fraction);
+        
+        setThemeColor(`${r}, ${g}, ${b}`);
+      }
+      
+      // Detect intent and trigger actions
+      const rawTarget = Math.round(position);
+      const progress = position - Math.floor(position);
+      const normalizedTarget = normalizeIndex(rawTarget);
+      
+      // Announce when crossing 30% threshold toward new game
+      if (progress > 0.3 && progress < 0.7 && 
+          normalizedTarget !== targetIndex && 
+          !scrollStateRef.current.hasAnnounced) {
+        
+        setTargetIndex(normalizedTarget);
+        const targetGame = games[normalizedTarget];
+        
+        // Immediate feedback
+        speak(targetGame.name);
+        playSwipe();
+        
+        scrollStateRef.current.hasAnnounced = true;
+      }
+      
+      // Reset announcement flag when settling
+      if (progress < 0.1 || progress > 0.9) {
+        scrollStateRef.current.hasAnnounced = false;
+      }
+      
+      scrollStateRef.current.lastPosition = position;
+      scrollStateRef.current.isScrolling = true;
+      
+      // Handle scroll end for wrapping
+      clearTimeout(scrollStateRef.current.scrollTimeout);
+      scrollStateRef.current.scrollTimeout = setTimeout(() => {
+        scrollStateRef.current.isScrolling = false;
+        
+        // Check if we're on a clone and need to reset position
+        const currentPosition = Math.round(scrollLeft / slideWidth);
+        
+        if (currentPosition === 0) {
+          // On last game clone, jump to real last game
+          carousel.scrollLeft = games.length * slideWidth;
+        } else if (currentPosition === games.length + 1) {
+          // On first game clone, jump to real first game
+          carousel.scrollLeft = slideWidth;
+        }
+      }, 150);
     };
 
-    carousel.addEventListener('scroll', updateColor);
-    setTimeout(updateColor, 100); // Initial update
+    carousel.addEventListener('scroll', handleScroll);
     
-    return () => carousel.removeEventListener('scroll', updateColor);
-  }, [games, setThemeColor]);
+    // Initial setup
+    setTimeout(() => {
+      handleScroll();
+    }, 100);
+    
+    return () => {
+      carousel.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollStateRef.current.scrollTimeout);
+    };
+  }, [games, targetIndex, setThemeColor, speak, playSwipe]);
 
-  // TODO: Implement carousel navigation
+  // Unified navigation for buttons and keyboard
   const navigate = useCallback((direction) => {
-    console.log('Navigate:', direction);
-    // Will implement clean navigation logic
-  }, []);
+    const carousel = carouselRef.current;
+    if (!carousel || scrollStateRef.current.isScrolling) return;
+    
+    // Calculate new target
+    const directionValue = direction === 'left' ? -1 : 1;
+    const newTarget = normalizeIndex(targetIndex + directionValue);
+    
+    // Update target and trigger immediate feedback
+    setTargetIndex(newTarget);
+    const targetGame = games[newTarget];
+    
+    speak(targetGame.name);
+    playClick();
+    setTimeout(() => playSwipe(), 50);
+    
+    // Prevent duplicate announcements from scroll handler
+    scrollStateRef.current.hasAnnounced = true;
+    
+    // Scroll to new position
+    const currentScroll = carousel.scrollLeft;
+    const slideWidth = carousel.offsetWidth;
+    carousel.scrollTo({
+      left: currentScroll + (directionValue * slideWidth),
+      behavior: 'smooth'
+    });
+  }, [targetIndex, games, speak, playClick, playSwipe, normalizeIndex]);
+
+  // Initialize carousel position to first real game (skip clone)
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel || games.length === 0) return;
+    
+    // Position at first real game (index 1 because of clone at start)
+    carousel.scrollLeft = carousel.offsetWidth;
+  }, [games.length]);
 
   const handleStartGame = useCallback(() => {
-    const currentGame = games[currentIndex];
+    const currentGame = games[targetIndex];
     if (!currentGame) return;
     
     playSelect();
@@ -118,7 +202,7 @@ function GameSelector({ onGameSelect, analyser }) {
     setTimeout(() => {
       onGameSelect(currentGame.id);
     }, 300);
-  }, [currentIndex, games, playSelect, onGameSelect]);
+  }, [targetIndex, games, playSelect, onGameSelect]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -145,12 +229,28 @@ function GameSelector({ onGameSelect, analyser }) {
       {/* Background particles */}
       <PixelParticles color={themeColor} />
       
-      {/* Game carousel - Simple linear layout for now */}
+      {/* Game carousel with clone slides for wrapping */}
       <div 
         ref={carouselRef}
         className={styles.carousel}
         style={{ opacity: isStarting ? 0 : 1 }}
       >
+        {/* Clone of last game at start */}
+        <div 
+          key="clone-last"
+          data-game-id={games[games.length - 1].id}
+          data-game-index={-1}
+          className={styles.carouselSlide}
+        >
+          <CarouselSlide
+            game={games[games.length - 1]}
+            isActive={false}
+            mode="title"
+            analyser={analyser}
+          />
+        </div>
+        
+        {/* All regular games */}
         {games.map((game, index) => (
           <div 
             key={game.id} 
@@ -160,12 +260,27 @@ function GameSelector({ onGameSelect, analyser }) {
           >
             <CarouselSlide
               game={game}
-              isActive={index === currentIndex}
+              isActive={index === targetIndex}
               mode="title"
               analyser={analyser}
             />
           </div>
         ))}
+        
+        {/* Clone of first game at end */}
+        <div 
+          key="clone-first"
+          data-game-id={games[0].id}
+          data-game-index={games.length}
+          className={styles.carouselSlide}
+        >
+          <CarouselSlide
+            game={games[0]}
+            isActive={false}
+            mode="title"
+            analyser={analyser}
+          />
+        </div>
       </div>
 
       {/* Navigation buttons */}
@@ -200,17 +315,17 @@ function GameSelector({ onGameSelect, analyser }) {
           >
             {/* Game description */}
             <AnimatePresence mode="wait">
-              {games[currentIndex] && (
+              {games[targetIndex] && (
                 <motion.div 
                   className={styles.gameDescriptionOverlay}
-                  key={games[currentIndex].id}
+                  key={games[targetIndex].id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                   style={{ color: `rgb(${themeColor})` }}
                 >
-                  <p>{games[currentIndex].description}</p>
+                  <p>{games[targetIndex].description}</p>
                 </motion.div>
               )}
             </AnimatePresence>
