@@ -13,7 +13,6 @@ import styles from './NavigationButton.module.css';
  * @param {string} props.className - Additional CSS classes
  * @param {Object} props.initialAnimation - Initial animation state
  * @param {boolean} props.isPressed - Whether the button is pressed (for keyboard navigation)
- * @param {number} props.beatScale - Scale factor for beat animation (1 = no effect)
  */
 function NavigationButton({ 
   onClick, 
@@ -23,8 +22,7 @@ function NavigationButton({
   children,
   className = '',
   initialAnimation = {},
-  isPressed = false,
-  beatScale = 1
+  isPressed = false
 }) {
   return (
     <motion.button
@@ -35,7 +33,7 @@ function NavigationButton({
       animate={{ 
         opacity: 1, 
         x: 0,
-        scale: isPressed ? 0.95 : beatScale
+        scale: isPressed ? 0.95 : 1
       }}
       style={{ 
         ...position,

@@ -8,7 +8,6 @@ import SettingsButton from './common/components/SettingsButton'
 import useSound from './common/hooks/useSound'
 import { IoMusicalNotes } from 'react-icons/io5'
 import { TbMusicOff } from 'react-icons/tb'
-import useRhythm from './common/hooks/useRhythm'
 import './App.css'
 
 // Import and register all games
@@ -37,8 +36,6 @@ function AppContent() {
   
   // Sound hooks
   const { playClick, playHover } = useSound();
-  // Always call the hook, but pass null when music is off
-  const { bounce } = useRhythm(analyser);
 
   // Initialize speech synthesis and menu music
   useEffect(() => {
@@ -188,7 +185,6 @@ function AppContent() {
             color={themeColor}
             position={{ top: '20px', right: '20px' }}
             isActive={musicEnabled}
-            beatScale={1 + bounce * 0.1} // Subtle bounce
           >
             {musicEnabled ? (
               <IoMusicalNotes size={24} color={`rgb(${themeColor})`} />
