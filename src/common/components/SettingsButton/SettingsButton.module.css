@@ -1,0 +1,47 @@
+/**
+ * SettingsButton.module.css - Retro-minimal settings button styles
+ * 
+ * Design: Circular button with invisible border that appears on hover
+ */
+
+.settingsButton {
+  position: fixed;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: transparent;
+  border-width: 3px;
+  border-style: solid;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 10000;
+  transition: none; /* Framer handles animations */
+}
+
+/* Remove button defaults */
+.settingsButton:focus {
+  outline: none;
+}
+
+/* Ensure SVG icons scale properly */
+.settingsButton svg {
+  width: 24px;
+  height: 24px;
+  transition: all 0.2s;
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+  .settingsButton {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .settingsButton svg {
+    width: 20px;
+    height: 20px;
+  }
+}

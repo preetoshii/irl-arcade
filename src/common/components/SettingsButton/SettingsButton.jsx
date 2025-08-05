@@ -1,45 +1,42 @@
 import { motion } from 'framer-motion';
-import styles from './NavigationButton.module.css';
+import styles from './SettingsButton.module.css';
 
 /**
- * Reusable navigation button component with hover effects and animations
+ * Reusable settings button component with hover effects and animations
  * 
  * @param {Object} props
  * @param {Function} props.onClick - Click handler
  * @param {Function} props.onHover - Hover handler (e.g., play sound)
  * @param {string} props.color - RGB color string (e.g., "255, 255, 255")
- * @param {string} props.position - CSS position object (e.g., { left: '2rem' } or { right: '2rem' })
- * @param {ReactNode} props.children - Button content (arrow or custom content)
+ * @param {Object} props.position - CSS position object (e.g., { top: '20px', right: '20px' })
+ * @param {ReactNode} props.children - Button content (icon or custom content)
  * @param {string} props.className - Additional CSS classes
- * @param {Object} props.initialAnimation - Initial animation state
- * @param {boolean} props.isPressed - Whether the button is pressed (for keyboard navigation)
+ * @param {boolean} props.isActive - Whether the button is in active state
  */
-function NavigationButton({ 
+function SettingsButton({ 
   onClick, 
   onHover,
   color = '255, 255, 255',
   position = {},
   children,
   className = '',
-  initialAnimation = {},
-  isPressed = false
+  isActive = false
 }) {
   return (
     <motion.button
-      className={`${styles.navButton} ${className}`}
+      className={`${styles.settingsButton} ${className}`}
       onClick={onClick}
       onMouseEnter={onHover}
-      initial={{ opacity: 0, ...initialAnimation }}
+      initial={{ opacity: 0, scale: 0.8 }}
       animate={{ 
         opacity: 1, 
-        x: 0,
-        scale: isPressed ? 0.95 : 1
+        scale: 1
       }}
       style={{ 
         ...position,
-        color: isPressed ? '#000' : `rgb(${color})`,
-        borderColor: isPressed ? '#fff' : `rgb(${color})`,
-        backgroundColor: isPressed ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0)'
+        color: `rgb(${color})`,
+        borderColor: 'transparent',
+        backgroundColor: 'rgba(0, 0, 0, 0)'
       }}
       whileHover={{ 
         scale: 1.1,
@@ -59,4 +56,4 @@ function NavigationButton({
   );
 }
 
-export default NavigationButton;
+export default SettingsButton;

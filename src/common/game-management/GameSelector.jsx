@@ -204,16 +204,40 @@ function GameSelector({ onGameSelect, analyser }) {
     }, 300);
   }, [targetIndex, games, playSelect, onGameSelect]);
 
+  // Track button animations
+  const [leftButtonPressed, setLeftButtonPressed] = useState(false);
+  const [rightButtonPressed, setRightButtonPressed] = useState(false);
+  const [startButtonPressed, setStartButtonPressed] = useState(false);
+
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'ArrowLeft') navigate('left');
-      if (e.key === 'ArrowRight') navigate('right');
-      if (e.key === 'Enter') handleStartGame();
+      if (e.key === 'ArrowLeft') {
+        setLeftButtonPressed(true);
+        navigate('left');
+      }
+      if (e.key === 'ArrowRight') {
+        setRightButtonPressed(true);
+        navigate('right');
+      }
+      if (e.key === 'Enter') {
+        setStartButtonPressed(true);
+        handleStartGame();
+      }
+    };
+    
+    const handleKeyUp = (e) => {
+      if (e.key === 'ArrowLeft') setLeftButtonPressed(false);
+      if (e.key === 'ArrowRight') setRightButtonPressed(false);
+      if (e.key === 'Enter') setStartButtonPressed(false);
     };
     
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [navigate, handleStartGame]);
 
   if (games.length === 0) {
@@ -290,6 +314,7 @@ function GameSelector({ onGameSelect, analyser }) {
         color={themeColor}
         position={{ left: '2rem' }}
         initialAnimation={{ x: -20 }}
+        isPressed={leftButtonPressed}
       >
         ◀
       </NavigationButton>
@@ -300,6 +325,7 @@ function GameSelector({ onGameSelect, analyser }) {
         color={themeColor}
         position={{ right: '2rem' }}
         initialAnimation={{ x: 20 }}
+        isPressed={rightButtonPressed}
       >
         ▶
       </NavigationButton>
@@ -336,13 +362,13 @@ function GameSelector({ onGameSelect, analyser }) {
               onClick={handleStartGame}
               onMouseEnter={playHover}
               style={{
-                borderColor: `rgb(${themeColor})`,
-                color: `rgb(${themeColor})`,
-                backgroundColor: 'transparent'
+                borderColor: startButtonPressed ? '#fff' : `rgb(${themeColor})`,
+                color: startButtonPressed ? '#000' : `rgb(${themeColor})`,
+                backgroundColor: startButtonPressed ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0)'
               }}
               whileHover={{ 
                 scale: 1.1,
-                backgroundColor: '#fff',
+                backgroundColor: 'rgba(255, 255, 255, 1)',
                 color: '#000',
                 borderColor: '#fff'
               }}
@@ -351,7 +377,11 @@ function GameSelector({ onGameSelect, analyser }) {
               animate={{ 
                 y: 0, 
                 opacity: 1,
-                transition: { delay: 0.5 }
+                scale: startButtonPressed ? 0.95 : 1,
+                transition: { 
+                  y: { delay: 0.5 },
+                  opacity: { delay: 0.5 }
+                }
               }}
               transition={{ 
                 type: "spring",

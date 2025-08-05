@@ -4,6 +4,10 @@ import { ThemeProvider, useThemeColor } from './common/contexts/ThemeContext'
 import GameSelector from './common/game-management/GameSelector'
 import GameLoader from './common/game-management/GameLoader'
 import SimonSaysDebugPage from './games/simon-says/debug/DebugPage'
+import SettingsButton from './common/components/SettingsButton'
+import useSound from './common/hooks/useSound'
+import { IoMusicalNotes } from 'react-icons/io5'
+import { TbMusicOff } from 'react-icons/tb'
 import './App.css'
 
 // Import and register all games
@@ -29,6 +33,9 @@ function AppContent() {
   
   // Get theme color from context
   const themeColor = useThemeColor();
+  
+  // Sound hooks
+  const { playClick, playHover } = useSound();
 
   // Initialize speech synthesis and menu music
   useEffect(() => {
@@ -77,10 +84,7 @@ function AppContent() {
   }, [selectedGame, showDebug, musicEnabled]);
 
   const toggleMusic = () => {
-    // Play click sound
-    const clickAudio = new Audio('/sounds/click.wav');
-    clickAudio.volume = 0.3;
-    clickAudio.play().catch(err => console.log('Click sound failed:', err));
+    playClick();
     
     if (!musicEnabled && audioRef.current) {
       // Create audio context and analyzer when enabling music
@@ -104,6 +108,23 @@ function AppContent() {
         }
         
         console.log('Audio context created:', { audioContext, analyser: newAnalyser, state: audioContext.state });
+      } else {
+        // Audio context exists but analyser was cleared - recreate analyser
+        const existingAnalyser = audioContextRef.current.createAnalyser();
+        existingAnalyser.fftSize = 512;
+        existingAnalyser.smoothingTimeConstant = 0.6;
+        
+        // Reconnect the source through the new analyser
+        sourceRef.current.disconnect();
+        sourceRef.current.connect(existingAnalyser);
+        existingAnalyser.connect(audioContextRef.current.destination);
+        
+        setAnalyser(existingAnalyser);
+        
+        // Resume context if suspended
+        if (audioContextRef.current.state === 'suspended') {
+          audioContextRef.current.resume();
+        }
       }
     } else {
       // Clear analyser when disabling music
@@ -158,60 +179,19 @@ function AppContent() {
           />
           
           {/* Music toggle button - top right */}
-          <button 
+          <SettingsButton
             onClick={toggleMusic}
-            style={{
-              position: 'fixed',
-              top: '20px',
-              right: '20px',
-              background: 'transparent',
-              border: 'none',
-              width: '80px',
-              height: '80px',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              zIndex: 10000,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '20px'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#fff';
-              const svg = e.currentTarget.querySelector('svg');
-              if (svg) svg.style.stroke = '#000';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              const svg = e.currentTarget.querySelector('svg');
-              if (svg) svg.style.stroke = '#fff';
-            }}
+            onHover={playHover}
+            color={themeColor}
+            position={{ top: '20px', right: '20px' }}
+            isActive={musicEnabled}
           >
-            <svg 
-              width="24" 
-              height="24" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="#fff" 
-              strokeWidth="2"
-              style={{ transition: 'stroke 0.2s' }}
-            >
-              {musicEnabled ? (
-                // Speaker with sound waves
-                <>
-                  <path d="M11 5L6 9H2v6h4l5 4V5z" fill="#fff" />
-                  <path d="M15.5 8.5a5 5 0 0 1 0 7" />
-                  <path d="M19 5a9 9 0 0 1 0 14" />
-                </>
-              ) : (
-                // Speaker with slash
-                <>
-                  <path d="M11 5L6 9H2v6h4l5 4V5z" fill="#fff" />
-                  <line x1="22" y1="2" x2="2" y2="22" />
-                </>
-              )}
-            </svg>
-          </button>
+            {musicEnabled ? (
+              <IoMusicalNotes size={24} color={`rgb(${themeColor})`} />
+            ) : (
+              <TbMusicOff size={24} color={`rgb(${themeColor})`} />
+            )}
+          </SettingsButton>
         </motion.div>
       ) : (
         <GameLoader 
