@@ -6,6 +6,7 @@ import GameLoader from './common/game-management/GameLoader'
 import SimonSaysDebugPage from './games/simon-says/debug/DebugPage'
 import SettingsButton from './common/components/SettingsButton'
 import useSound from './common/hooks/useSound'
+import ttsService from './common/services/ttsService'
 import { IoMusicalNotes } from 'react-icons/io5'
 import { TbMusicOff } from 'react-icons/tb'
 import './App.css'
@@ -19,6 +20,7 @@ const menuMusic = '/sounds/menu.mp3'
 // Global Game object for console experimentation
 window.Game = {
   speak: null,
+  ttsService: ttsService,
   // Add whatever you need here for experiments
 }
 
@@ -39,12 +41,13 @@ function AppContent() {
 
   // Initialize speech synthesis and menu music
   useEffect(() => {
-    // Simple speak function ready to use
-    const speak = (text, pitch = 1, rate = 1) => {
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.pitch = pitch
-      utterance.rate = rate
-      window.speechSynthesis.speak(utterance)
+    // Simple speak function that uses the TTS service
+    const speak = async (text, pitch = 1, rate = 1) => {
+      try {
+        await ttsService.speak(text, pitch, rate);
+      } catch (error) {
+        console.error('TTS error:', error);
+      }
     }
     
     // Make it available globally for console experiments

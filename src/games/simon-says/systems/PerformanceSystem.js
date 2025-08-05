@@ -9,6 +9,7 @@
 import eventBus, { Events } from './EventBus';
 import configLoader from './ConfigLoader';
 import { getPauseDuration } from '../state/constants';
+import ttsService from '../../../common/services/ttsService';
 
 // ============================================
 // PERFORMANCE SYSTEM CLASS
@@ -348,38 +349,14 @@ class PerformanceSystem {
       await this.wait(text.length * 50); // Simulate speaking time
       
     } else {
-      // Real TTS
-      return new Promise((resolve, reject) => {
-        const utterance = new SpeechSynthesisUtterance(text);
-        
-        // Apply settings
-        utterance.rate = this.settings.rate;
-        utterance.pitch = this.settings.pitch;
-        utterance.volume = this.settings.volume;
-        if (this.settings.voice) {
-          utterance.voice = this.settings.voice;
-        }
-        
-        // Event handlers
-        utterance.onstart = () => {
-          console.log('[PerformanceSystem] Speech started');
-        };
-        
-        utterance.onend = () => {
-          console.log('[PerformanceSystem] Speech ended');
-          eventBus.emit(Events.SCRIPT_COMPLETED, { text });
-          resolve();
-        };
-        
-        utterance.onerror = (event) => {
-          console.error('[PerformanceSystem] Speech error:', event);
-          reject(event);
-        };
-        
-        // Speak
-        console.log('[PerformanceSystem] Calling synthesis.speak()');
-        this.synthesis.speak(utterance);
-      });
+      // Use the unified TTS service
+      try {
+        await ttsService.speak(text, this.settings.pitch, this.settings.rate);
+        eventBus.emit(Events.SCRIPT_COMPLETED, { text });
+      } catch (error) {
+        console.error('[PerformanceSystem] Speech error:', error);
+        throw error;
+      }
     }
   }
 
@@ -564,18 +541,34 @@ class PerformanceSystem {
    */
   async primeSpeechSynthesis() {
     return new Promise((resolve) => {
+      // Cancel any pending speech
+      window.speechSynthesis.cancel();
+      
       // Create a nearly silent utterance
       const utterance = new SpeechSynthesisUtterance(' ');
       utterance.volume = 0.01;
+      
+      // Add timeout to prevent hanging
+      const timeout = setTimeout(() => {
+        console.log('[PerformanceSystem] Priming timeout - marking as primed anyway');
+        this.primed = true;
+        resolve();
+      }, 2000);
+      
       utterance.onend = () => {
+        clearTimeout(timeout);
         console.log('[PerformanceSystem] Speech synthesis primed');
         this.primed = true;
         resolve();
       };
+      
       utterance.onerror = (e) => {
+        clearTimeout(timeout);
         console.error('[PerformanceSystem] Failed to prime speech synthesis:', e);
+        this.primed = true; // Mark as primed anyway to prevent hanging
         resolve();
       };
+      
       window.speechSynthesis.speak(utterance);
     });
   }
