@@ -21,6 +21,8 @@ import {
   performanceSystem 
 } from '../systems';
 
+import { PAUSE_DURATIONS } from '../state/constants';
+
 import { 
   matchState, 
   playerRegistry,
@@ -42,6 +44,13 @@ function SimonSaysDebugPage({ onBack }) {
   const [timeInBlock, setTimeInBlock] = useState(0);
   const [activeCountdowns, setActiveCountdowns] = useState([]); // Track active countdowns
   const [lastPlayExpanded, setLastPlayExpanded] = useState(false); // Collapsible state
+  const [pauseTimings, setPauseTimings] = useState({
+    micro: 500,
+    small: 1000,
+    medium: 2000,
+    large: 3000,
+    xlarge: 4000
+  });
   
   const maxLogs = 50;
   const initRef = useRef(false);
@@ -217,9 +226,7 @@ function SimonSaysDebugPage({ onBack }) {
       countdownIntervals.current.set(countdownId, interval);
     });
     
-    eventBus.on(Events.PAUSE_COMPLETED, (data) => {
-      addLog(`Pause [${data.type.toUpperCase()}] completed`, 'info');
-    });
+    // Removed PAUSE_COMPLETED logging - we only need to see when pauses start
     
     // Pattern events
     eventBus.on(Events.PATTERN_SELECTED, (data) => {
@@ -381,6 +388,21 @@ function SimonSaysDebugPage({ onBack }) {
     }
   };
 
+  const updatePauseTiming = (pauseType, newValue) => {
+    const numValue = parseInt(newValue);
+    if (!isNaN(numValue) && numValue >= 0) {
+      setPauseTimings(prev => ({
+        ...prev,
+        [pauseType]: numValue
+      }));
+      
+      // Update the actual PAUSE_DURATIONS constant
+      PAUSE_DURATIONS[pauseType.toUpperCase()] = numValue;
+      
+      addLog(`Updated ${pauseType.toUpperCase()} pause to ${numValue}ms`, 'system');
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -443,6 +465,30 @@ function SimonSaysDebugPage({ onBack }) {
             <button onClick={updateSystemStatuses}>
               Refresh Status
             </button>
+          </div>
+        </div>
+
+        {/* Pause Timing Controls */}
+        <div className={styles.section}>
+          <h2>Pause Timing Controls</h2>
+          <div className={styles.pauseControls}>
+            {Object.entries(pauseTimings).map(([pauseType, duration]) => (
+              <div key={pauseType} className={styles.pauseControl}>
+                <label className={styles.pauseLabel}>
+                  {pauseType.toUpperCase()}:
+                </label>
+                <input
+                  type="number"
+                  value={duration}
+                  onChange={(e) => updatePauseTiming(pauseType, e.target.value)}
+                  className={styles.pauseInput}
+                  min="0"
+                  max="10000"
+                  step="100"
+                />
+                <span className={styles.pauseUnit}>ms</span>
+              </div>
+            ))}
           </div>
         </div>
 

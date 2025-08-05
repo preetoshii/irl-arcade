@@ -328,6 +328,53 @@
   border-radius: 4px;
 }
 
+/* Pause Timing Controls */
+.pauseControls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.pauseControl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #2a2a2a;
+  padding: 10px 15px;
+  border-radius: 4px;
+  border: 1px solid #333;
+}
+
+.pauseLabel {
+  font-size: 12px;
+  font-weight: bold;
+  color: #aaa;
+  letter-spacing: 0.5px;
+  min-width: 60px;
+}
+
+.pauseInput {
+  width: 80px;
+  padding: 5px 8px;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  border-radius: 3px;
+}
+
+.pauseInput:focus {
+  outline: none;
+  border-color: #666;
+  background: #222;
+}
+
+.pauseUnit {
+  font-size: 12px;
+  color: #666;
+}
+
 /* Last Play Section - Collapsible */
 .lastPlaySection {
   margin: 20px 0;
