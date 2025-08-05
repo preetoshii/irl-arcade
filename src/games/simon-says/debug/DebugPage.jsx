@@ -363,18 +363,6 @@ function SimonSaysDebugPage({ onBack }) {
     setPatternViz(viz || 'No pattern loaded');
   };
 
-  // Helper to explain pattern symbols
-  const getPatternLegend = () => {
-    return {
-      '🎭': 'Opening Ceremony',
-      '🎬': 'Closing Ceremony',
-      '🎮': 'Round',
-      '😌': 'Relax Break',
-      '✓': 'Completed',
-      '[]': 'Current'
-    };
-  };
-
   // Parse pattern visualization to show detailed info
   const parsePatternViz = (viz) => {
     if (!viz || viz === 'No pattern loaded') return null;
@@ -579,19 +567,6 @@ function SimonSaysDebugPage({ onBack }) {
                         </div>
                       </div>
                     ))}
-                  </div>
-                  
-                  {/* Legend */}
-                  <div className={styles.patternLegend}>
-                    <h4>Legend:</h4>
-                    <div className={styles.legendItems}>
-                      {Object.entries(getPatternLegend()).map(([symbol, meaning]) => (
-                        <div key={symbol} className={styles.legendItem}>
-                          <span className={styles.legendSymbol}>{symbol}</span>
-                          <span className={styles.legendText}>{meaning}</span>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 </>
               ) : (
