@@ -24,6 +24,7 @@ function GameSelector({ onGameSelect, analyser }) {
   const [targetIndex, setTargetIndex] = useState(0);
   const [isStarting, setIsStarting] = useState(false);
   const [modelColor, setModelColor] = useState('255, 255, 255'); // Store model color separately
+  const [modelSize, setModelSize] = useState(1200);
   const carouselRef = useRef(null);
   
   // Track scroll state to prevent duplicate announcements
@@ -53,6 +54,36 @@ function GameSelector({ onGameSelect, analyser }) {
       setModelColor(games[0].color);
     }
   }, [games]);
+
+  // Responsive model sizing using viewport width with smooth, continuous scaling
+  useEffect(() => {
+    const pixelSize = 4; // must match wireframe pixel grid
+    const computeSize = () => {
+      const vw = Math.max(320, window.innerWidth || 320);
+      const vh = Math.max(320, window.innerHeight || 320);
+      const isPortrait = vh >= vw;
+      // Bigger on mobile, close to legacy size but a bit less
+      const maxSize = 1200;
+      const base = isPortrait
+        ? Math.max(vw, vh) * 1.25 // e.g., 812 * 1.25 ≈ 1015 on iPhone X
+        : vw * 1.2;
+      const minSize = isPortrait ? 800 : 720;
+      const clamped = Math.min(maxSize, Math.max(minSize, base));
+      return Math.round(clamped / pixelSize) * pixelSize;
+    };
+    let rafId;
+    const handleResize = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => setModelSize(computeSize()));
+    };
+    // Initial
+    setModelSize(computeSize());
+    window.addEventListener('resize', handleResize);
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
 
   // Intent-based scroll handling with color interpolation
@@ -308,7 +339,8 @@ function GameSelector({ onGameSelect, analyser }) {
           <WireframeModel 
             color={modelColor}
             modelType={currentGameModel}
-            size={1200}
+            size={modelSize}
+            pixelSize={4}
           />
         </motion.div>
       </AnimatePresence>

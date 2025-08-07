@@ -7,7 +7,7 @@
 export default {
   id: 'tag',
   name: 'Audio Tag',
-  description: 'A sound-based tag game where players must avoid being "it" using only audio cues!',
+  description: 'chase the sound, don’t get caught',
   minPlayers: 3,
   maxPlayers: 50,
   requiresTeams: false,

@@ -7,7 +7,7 @@
 export default {
   id: 'simon-says',
   name: 'Simon Says',
-  description: 'A classic game of following commands! Teams take turns completing physical challenges announced by Simon.',
+  description: 'quick commands, big laughs',
   minPlayers: 2,
   maxPlayers: 100,
   requiresTeams: true,
