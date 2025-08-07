@@ -115,17 +115,10 @@ function RunningModel({ color = 'white', modelPath }) {
     }
   }, [scene, color]);
   
-  // Rotate the model and ensure color stays applied
+  // Rotate the model
   useFrame((state, delta) => {
     if (groupRef.current) {
       groupRef.current.rotation.y += delta * 0.5;
-      
-      // Failsafe: reapply color if it's black
-      groupRef.current.traverse((child) => {
-        if (child.isMesh && child.material.color.getHex() === 0x000000) {
-          child.material.color = new THREE.Color(color);
-        }
-      });
     }
   });
   

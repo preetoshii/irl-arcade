@@ -14,7 +14,7 @@ import gameRegistry from './GameRegistry';
 import CarouselSlide from './CarouselSlide';
 import ParticleStarfield from '../components/ParticleStarfield';
 import NavigationButton from '../components/NavigationButton';
-import WireframeModel from '../components/WireframeModel';
+import WireframeModel from '../components/WireframeModel/WireframeModelOptimized';
 import { useThemeColor, useThemeController } from '../contexts/ThemeContext';
 import useSound from '../hooks/useSound';
 import styles from './GameSelector.module.css';
@@ -294,7 +294,6 @@ function GameSelector({ onGameSelect, analyser }) {
       {/* Fixed 3D model in background */}
       <AnimatePresence mode="wait">
         <motion.div 
-          key={currentGameModel}
           className={styles.backgroundModel}
           initial={{ opacity: 0 }}
           animate={{ 
